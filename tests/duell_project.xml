@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<app file="network" title="Network" package="com.gameduell.tests.network"
+		version="0.0.1" company="GameDuell GmbH" />
+
+	<main name="Main" />
+
+	<source path="source" />
+
+	<duelllib name="sound" version="master"/>
+    <duelllib name="duellkit" version="master"/>
+    <duelllib name="game_engine" version="master"/>
+    <duelllib name="game_engine_extensions" version="master"/>
+
+    <platform-config>
+    </platform-config>
+
+    <library-config>
+        <filesystem>
+            <static-assets path="Assets" />
+        </filesystem>
+    </library-config>
+
+</project>
