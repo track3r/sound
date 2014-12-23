@@ -5,6 +5,14 @@
  */
 package scenes;
 
+import types.haxeinterop.HaxeOutputInteropStream;
+import haxe.io.Bytes;
+import types.haxeinterop.HaxeInputInteropStream;
+import types.DataOutputStream;
+import types.OutputStream;
+import flash.media.Sound;
+import types.DataInputStream;
+import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
 import game_engine.systems.RelationSystem;
 import game_engine.systems.Camera2DSystem;
@@ -14,6 +22,14 @@ import game_engine.systems.ui.SimpleButtonSystem;
 import game_engine.core.SimpleButton;
 import renderer.texture.Texture2D;
 import game_engine.core.Scene;
+
+import types.Data;
+import format.mp3.Data;
+import format.mp3.Tools;
+import format.mp3.Reader;
+import sound.Sound;
+import types.InputStream;
+import ash.core.Entity;
 class SoundScene extends Scene
 {
     private static var ballTexture : Texture2D;
@@ -55,16 +71,21 @@ class SoundScene extends Scene
 
     private function createButtons():Void
     {
-        playBtn = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture, "playButton");
+        playBtn = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
         playBtn.transform.x = 50;
         playBtn.transform.y = 50;
 
-        stopBtn = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture, "stopButton");
+        stopBtn = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
         stopBtn.transform.x = 250;
         stopBtn.transform.y = 50;
 
         root.addChild(playBtn);
         root.addChild(stopBtn);
+
+        playBtn.settings.onButtonUp.add(function(btn: Entity)
+        {
+            loadSound("shotgun.mp3");
+        });
     }
 
     private function registerSystems () : Void
@@ -81,15 +102,43 @@ class SoundScene extends Scene
 
     override public function sceneWillAppear() : Void
     {
-        createAndAddSpritesEntities();
-        createAndAddButtonsEntities();
+        createButtons();
     }
 
-    private function createAndAddSpritesEntities()
+    private function loadSound(filename: String): Void
     {
+        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + filename;
+        var fileExtension: String = fileUrl.split(".").pop().toLowerCase();
+
+        if(fileExtension != "mp3")
+        {
+            throw "other formats are suported for now";
+        }
+
+        var reader: filesystem.FileReader = FileSystem.instance().getFileReader(fileUrl);
+        if (reader == null)
+        {
+            throw "Couldnt find file for fileUrl" + fileUrl;
+        }
+
+        var fileSize = FileSystem.instance().getFileSize(fileUrl);
+        var data = new Data(fileSize);
+        reader.readIntoData(data);
+//        var inputStream = new DataInputStream(data);
+//
+//        var haxeInput: HaxeInputInteropStream = new HaxeInputInteropStream(inputStream);
+//        var mp3Reader = new format.mp3.Reader(haxeInput);
+//        var mp3 = mp3Reader.read();
+
+
+//        var dataStream  = new DataOutputStream(data);
+//        var bytesStream = new HaxeOutputInteropStream(dataStream);
+//
+//        var mp3Writer: format.mp3.Writer =  new format.mp3.Writer(bytesStream);
+//        mp3Writer.write(mp3,true);
+
+        var sound: Sound = new Sound(data);
+        sound.play();
     }
 
-    private function createAndAddButtonsEntities() : Void
-    {
-    }
 }

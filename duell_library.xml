@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <library>
     <haxelib name="msignal"/>
+    <haxelib name="format"/>
     <dullib name="types"/>
 
     <include path="backends/sound_html5/duell_library.xml" if="html5" />

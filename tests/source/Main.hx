@@ -6,6 +6,7 @@
  */
 package;
 
+import haxe.CallStack;
 import scenes.SoundScene;
 import duell.DuellKit;
 
@@ -21,6 +22,7 @@ class Main
 
         DuellKit.instance().onError.add(function(data:Dynamic) : Void{
             trace("Error : " + data);
+            trace(CallStack.toString(CallStack.exceptionStack()));
         });
     }
 

@@ -4,28 +4,29 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
-import flash.media.SoundChannel;
 import msignal.Signal;
 import types.Data;
 import flash.media.Sound;
+import flash.media.SoundChannel;
 ///=================///
 /// Sound flash     ///
 ///                 ///
 ///=================///
 class Sound
 {
-    public var volume(set_volume,default): Float;
-    public var loop(set_loop,default): Bool;
-    public var length(null,get_length): Float;
-    public var position(null,get_position): Float;
-    public var onPlaybackComplete(default,null): Signal1;
+    public var volume(default,set_volume): Float;
+    public var loop(default,set_loop): Bool;
+    public var length(get_length,null): Float;
+    public var position(get_position,null): Float;
+    public var onPlaybackComplete(default,null): Signal1<Sound>;
 
-    private var flashSound: Sound;
+    private var flashSound: flash.media.Sound;
     private var flashSoundChannel: SoundChannel;
     public function new(data: Data)
     {
-        flashSound = new Sound();
-        flashSound.loadCompressedDataFromByteArray(data);
+        flashSound = new flash.media.Sound();
+        data.byteArray.position=0;
+        flashSound.loadCompressedDataFromByteArray(data.byteArray, data.byteArray.length);
     }
 
     public function play(): Void
