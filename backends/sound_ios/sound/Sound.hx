@@ -14,6 +14,9 @@ class Sound
 {
     public var volume(set_volume,default): Float;
     public var loop(set_loop,default): Bool;
+    public var length(null,get_length): Float;
+    public var position(null,get_position): Float;
+
 
     public var onPlaybackComplete(default,null): Signal1;
 
@@ -54,5 +57,19 @@ class Sound
     {
         loop = value;
         return loop;
+    }
+
+    /// get the length of the current sound
+    public function get_length(): Float
+    {
+        //TODO: Impliment me
+        return 0.0;
+    }
+
+    /// get the current time of the current sound
+    public function get_position(): Float
+    {
+        //TODO: Impliment me
+        return 0.0;
     }
 }

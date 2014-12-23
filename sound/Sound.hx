@@ -10,6 +10,8 @@ extern class Sound
 {
     public var volume(set_volume,default): Int;
     public var loop(set_loop,default): Bool;
+    public var length(null,get_length): Float;
+    public var position(null,get_position): Float;
 
     public var onPlaybackComplete(default,null): Signal1;
     public function new(data: Data);
