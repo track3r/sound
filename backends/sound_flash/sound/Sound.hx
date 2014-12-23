@@ -4,8 +4,10 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
+import flash.media.SoundChannel;
 import msignal.Signal;
 import types.Data;
+import flash.media.Sound;
 ///=================///
 /// Sound flash     ///
 ///                 ///
@@ -17,19 +19,25 @@ class Sound
 
     public var onPlaybackComplete(default,null): Signal1;
 
+    private var flashSound: Sound;
+    private var flashSoundChannel: SoundChannel;
     public function new(data: Data)
     {
-        //TODO: Impliment me
+        flashSound = new Sound();
+        flashSound.loadCompressedDataFromByteArray(data);
     }
 
     public function play(): Void
     {
-        //TODO: Impliment me
+        flashSoundChannel = flashSound.play();
     }
 
     public function stop(): Void
     {
-        //TODO: Impliment me
+        if(flashSoundChannel != null)
+        {
+            flashSoundChannel.stop();
+        }
     }
 
     public function pause(): Void
