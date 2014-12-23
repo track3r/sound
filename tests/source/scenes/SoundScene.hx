@@ -48,6 +48,8 @@ class SoundScene extends Scene
     private static var playBtn : SimpleButton;
     private static var stopBtn : SimpleButton;
 
+    //sound
+    private var sound: Sound;
 
     override public function initScene() : Void
     {
@@ -85,6 +87,13 @@ class SoundScene extends Scene
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
             loadSound("shotgun.mp3");
+        });
+        stopBtn.settings.onButtonUp.add(function(btn: Entity)
+        {
+            if(sound != null)
+            {
+                sound.stop();
+            }
         });
     }
 
@@ -129,15 +138,13 @@ class SoundScene extends Scene
 //        var haxeInput: HaxeInputInteropStream = new HaxeInputInteropStream(inputStream);
 //        var mp3Reader = new format.mp3.Reader(haxeInput);
 //        var mp3 = mp3Reader.read();
-
-
 //        var dataStream  = new DataOutputStream(data);
 //        var bytesStream = new HaxeOutputInteropStream(dataStream);
 //
 //        var mp3Writer: format.mp3.Writer =  new format.mp3.Writer(bytesStream);
 //        mp3Writer.write(mp3,true);
 
-        var sound: Sound = new Sound(data);
+        sound = new Sound(data);
         sound.play();
     }
 
