@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
-	<app file="network" title="Network" package="com.gameduell.tests.network"
+	<app file="sound" title="Sound Test Scene" package="com.gameduell.tests.sound"
 		version="0.0.1" company="GameDuell GmbH" />
 
 	<main name="Main" />

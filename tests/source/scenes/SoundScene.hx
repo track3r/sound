@@ -40,10 +40,6 @@ class SoundScene extends Scene
         registerSystems();
     }
 
-    private function configureGraphics() : Void
-    {
-    }
-
     private function createTextures() : Void
     {
         ///playBtn textures
@@ -91,11 +87,9 @@ class SoundScene extends Scene
 
     private function createAndAddSpritesEntities()
     {
-
     }
 
     private function createAndAddButtonsEntities() : Void
     {
-
     }
 }
