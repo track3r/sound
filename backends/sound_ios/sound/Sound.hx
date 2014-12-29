@@ -20,14 +20,14 @@ class Sound
 
 
     ///Native function references
-    private static var registerCallbackNativeFunc = Lib.load("iossound","iossound_registerCallback",1);
-    private static var initializeNativeFunc = Lib.load("iossound","iossound_initialize",1);
-    private static var playNativeFunc = Lib.load("iossound","iossound_play",0);
-    private static var stopNativeFunc = Lib.load("iossound","iossound_stop",0);
-    private static var pauseNativeFunc = Lib.load("iossound","iossound_pause",0);
-    private static var setLoopNativeFunc = Lib.load("iossound","iossound_setLoop",1);
-    private static var setVolumeNativeFunc = Lib.load("iossound","iossound_setVolume",1);
-    private static var setMuteNativeFunc = Lib.load("iossound","iossound_setMute",1);
+    private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
+    private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",1);
+    private static var playNativeFunc = Lib.load("soundios","soundios_play",0);
+    private static var stopNativeFunc = Lib.load("soundios","soundios_stop",0);
+    private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",0);
+    private static var setLoopNativeFunc = Lib.load("soundios","soundios_setLoop",1);
+    private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",1);
+    private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",1);
 
 
     public var onPlaybackComplete(default,null): Signal1<Sound>;

@@ -10,7 +10,7 @@
 
     </files>
 
-    <target id="NDLL" output="${LIBPREFIX}iossound{DBG}${LIBEXTRA}" tool="linker" toolid="${STD_MODULE_LINK}">
+    <target id="NDLL" output="${LIBPREFIX}soundios{DBG}${LIBEXTRA}" tool="linker" toolid="${STD_MODULE_LINK}">
 
         <outdir name="../ndll/${BINDIR}"/>
         <files id="src"/>

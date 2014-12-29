@@ -8,7 +8,7 @@ value *__soundCompleteCallback = NULL;
 
 
 ///------------------------------------------------------------------------------------------------
-static value iossound_registerCallback(value callback)
+static value soundios_registerCallback(value callback)
 {
     val_check_function(callback, 1); // Is Func ?
 
@@ -20,56 +20,56 @@ static value iossound_registerCallback(value callback)
 
     return alloc_null();
 }
-DEFINE_PRIM (iossound_registerCallback, 1);
+DEFINE_PRIM (soundios_registerCallback, 1);
 ///--------------------------------------------------------------------
-static value iossound_intialize(value soundData)
+static value soundios_intialize(value soundData)
 {
-    NSLog(@"iossound_intialize");
+    NSLog(@"soundios_intialize");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_intialize,1);
+DEFINE_PRIM(soundios_intialize,1);
 ///--------------------------------------------------------------------
-static value iossound_play()
+static value soundios_play()
 {
-    NSLog(@"iossound_play");
+    NSLog(@"soundios_play");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_play,0);
+DEFINE_PRIM(soundios_play,0);
 ///--------------------------------------------------------------------
-static value iossound_stop()
+static value soundios_stop()
 {
-    NSLog(@"iossound_stop");
+    NSLog(@"soundios_stop");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_stop,0);
+DEFINE_PRIM(soundios_stop,0);
 ///--------------------------------------------------------------------
-static value iossound_pause()
+static value soundios_pause()
 {
-    NSLog(@"iossound_pause");
+    NSLog(@"soundios_pause");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_pause,0);
+DEFINE_PRIM(soundios_pause,0);
 ///--------------------------------------------------------------------
-static value iossound_setLoop(value loop)
+static value soundios_setLoop(value loop)
 {
-    NSLog(@"iossound_setLoop");
+    NSLog(@"soundios_setLoop");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_setLoop,1);
+DEFINE_PRIM(soundios_setLoop,1);
 ///--------------------------------------------------------------------
-static value iossound_setVolume(value volume)
+static value soundios_setVolume(value volume)
 {
-    NSLog(@"iossound_setVolume");
+    NSLog(@"soundios_setVolume");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_setVolume,1);
+DEFINE_PRIM(soundios_setVolume,1);
 ///--------------------------------------------------------------------
-static value iossound_setMute(value mute)
+static value soundios_setMute(value mute)
 {
-    NSLog(@"iossound_setMute");
+    NSLog(@"soundios_setMute");
     return alloc_null();
 }
-DEFINE_PRIM(iossound_setMute,1);
+DEFINE_PRIM(soundios_setMute,1);
 ///--------------------------------------------------------------------
 
-extern "C" int iossound_register_prims () { return 0; }
+extern "C" int soundios_register_prims () { return 0; }
