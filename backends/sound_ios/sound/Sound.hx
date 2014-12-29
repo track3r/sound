@@ -6,49 +6,62 @@
 package sound;
 import msignal.Signal;
 import types.Data;
+import cpp.Lib;
 ///=================///
 /// Sound IOS       ///
 ///                 ///
 ///=================///
 class Sound
 {
-    public var volume(set_volume,default): Float;
-    public var loop(set_loop,default): Bool;
-    public var length(null,get_length): Float;
-    public var position(null,get_position): Float;
+    public var volume(default, set_volume): Float;
+    public var loop(default, set_loop): Bool;
+    public var length(get_length, null): Float;
+    public var position(get_position, null): Float;
 
 
-    public var onPlaybackComplete(default,null): Signal1;
+    ///Native function references
+    private static var registerCallbackNativeFunc = Lib.load("iossound","iossound_registerCallback",1);
+    private static var initializeNativeFunc = Lib.load("iossound","iossound_initialize",1);
+    private static var playNativeFunc = Lib.load("iossound","iossound_play",0);
+    private static var stopNativeFunc = Lib.load("iossound","iossound_stop",0);
+    private static var pauseNativeFunc = Lib.load("iossound","iossound_pause",0);
+    private static var setLoopNativeFunc = Lib.load("iossound","iossound_setLoop",1);
+    private static var setVolumeNativeFunc = Lib.load("iossound","iossound_setVolume",1);
+    private static var setMuteNativeFunc = Lib.load("iossound","iossound_setMute",1);
+
+
+    public var onPlaybackComplete(default,null): Signal1<Sound>;
 
     public function new(data: Data)
     {
-        //TODO: Impliment me
+        initializeNativeFunc(data);
     }
 
     public function play(): Void
     {
-        //TODO: Impliment me
+        playNativeFunc();
     }
 
     public function stop(): Void
     {
-        //TODO: Impliment me
+        stopNativeFunc();
     }
 
     public function pause(): Void
     {
-        //TODO: Impliment me
+        pauseNativeFunc();
     }
 
     public function mute(): Void
     {
-        //TODO: Impliment me
+        setMuteNativeFunc(true);
     }
 
     /// here you can do platform specific logic to set the sound volume
     public function set_volume(value: Float): Float
     {
         volume = value;
+        setVolumeNativeFunc(volume);
         return volume;
     }
 
@@ -56,6 +69,7 @@ class Sound
     public function set_loop(value: Bool): Bool
     {
         loop = value;
+        setLoopNativeFunc(loop);
         return loop;
     }
 

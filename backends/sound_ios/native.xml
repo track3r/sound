@@ -1,0 +1,4 @@
+<xml>
+	<compilerflag value="-I${haxelib:sound}/backends/sound_ios/project/include" />
+</xml>
+

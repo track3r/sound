@@ -5,13 +5,6 @@
  */
 package scenes;
 
-import types.haxeinterop.HaxeOutputInteropStream;
-import haxe.io.Bytes;
-import types.haxeinterop.HaxeInputInteropStream;
-import types.DataOutputStream;
-import types.OutputStream;
-import flash.media.Sound;
-import types.DataInputStream;
 import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
 import game_engine.systems.RelationSystem;
@@ -25,10 +18,7 @@ import game_engine.core.Scene;
 
 import types.Data;
 import format.mp3.Data;
-import format.mp3.Tools;
-import format.mp3.Reader;
 import sound.Sound;
-import types.InputStream;
 import ash.core.Entity;
 class SoundScene extends Scene
 {
@@ -133,17 +123,6 @@ class SoundScene extends Scene
         var fileSize = FileSystem.instance().getFileSize(fileUrl);
         var data = new Data(fileSize);
         reader.readIntoData(data);
-//        var inputStream = new DataInputStream(data);
-//
-//        var haxeInput: HaxeInputInteropStream = new HaxeInputInteropStream(inputStream);
-//        var mp3Reader = new format.mp3.Reader(haxeInput);
-//        var mp3 = mp3Reader.read();
-//        var dataStream  = new DataOutputStream(data);
-//        var bytesStream = new HaxeOutputInteropStream(dataStream);
-//
-//        var mp3Writer: format.mp3.Writer =  new format.mp3.Writer(bytesStream);
-//        mp3Writer.write(mp3,true);
-
         sound = new Sound(data);
         sound.play();
     }
