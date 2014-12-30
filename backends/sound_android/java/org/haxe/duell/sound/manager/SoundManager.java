@@ -24,6 +24,8 @@ public final class SoundManager
     private MediaPlayerState playerState;
     private MediaPlayer player;
 
+    private Sound lastSound;
+
     private final WeakReference<AssetManager> assetManager;
 
     public static SoundManager getSharedInstance()
@@ -58,7 +60,7 @@ public final class SoundManager
         reset();
     }
 
-    public synchronized boolean preloadSound(final Sound sound)
+    public synchronized boolean initializeSound(final Sound sound)
     {
         AssetManager assets = assetManager.get();
 
@@ -72,6 +74,7 @@ public final class SoundManager
         if (player.isPlaying())
         {
             stop();
+            reset();
         }
 
         String fileUrl = sound.getFileUrl();
@@ -88,20 +91,9 @@ public final class SoundManager
             playerState = MediaPlayerState.INITIALIZED;
             afd.close();
 
-            // bind the prepare listener for THIS particular instance of sound
-            player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
-            {
-                @Override
-                public void onPrepared(MediaPlayer mp)
-                {
-                    playerState = MediaPlayerState.PREPARED;
-                    sound.onSoundReady(sound);
-                }
-            });
+            replaceSound(sound);
 
-            // prepare the sound
-            playerState = MediaPlayerState.PREPARING;
-            player.prepareAsync();
+            prepareSound(sound, false);
         } catch (IOException e)
         {
             Log.e(TAG, e.getMessage());
@@ -111,41 +103,88 @@ public final class SoundManager
         return true;
     }
 
-    public void play(final Sound sound)
-    {
-        if (playerState == MediaPlayerState.IDLE)
+    private void replaceSound(Sound sound) {
+        if (lastSound != null)
         {
-            preloadSound(sound);
-            return;
-        } else if (player != null && player.isPlaying())
-        {
-            // for any possible state of play, if the player is already playing whatever sound, stop and play new one
-            stop();
-            play(sound);
-            return;
+            lastSound.unload();
         }
 
-        if (player != null && isAbleToPlay())
-        {
-            playerState = MediaPlayerState.STARTED;
-            player.start();
-
-            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
-            {
-                @Override
-                public void onCompletion(MediaPlayer mp)
-                {
-                    playerState = MediaPlayerState.PLAYBACK_COMPLETED;
-
-                    stop();
-
-                    sound.onSoundComplete(sound);
-                }
-            });
-        }
+        lastSound = sound;
     }
 
-    private void reset() {
+    private void prepareSound(final Sound sound, final boolean shouldPlay) {
+        // bind the prepare listener for THIS particular instance of sound
+        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+        {
+            @Override
+            public void onPrepared(MediaPlayer mp)
+            {
+                playerState = MediaPlayerState.PREPARED;
+
+                // if it should play, do so immediately, otherwise notify the listeners
+                if (shouldPlay)
+                {
+                    play(sound);
+                } else
+                {
+                    sound.onSoundReady(sound, getCurrentSoundDuration());
+                }
+            }
+        });
+
+        // prepare the sound
+        playerState = MediaPlayerState.PREPARING;
+        player.prepareAsync();
+    }
+
+    public void play(final Sound sound)
+    {
+        if (playerState == MediaPlayerState.IDLE || lastSound != sound)
+        {
+            // we are changing songs, if it is playing, stop the current song
+            if (player.isPlaying())
+            {
+                stop();
+            }
+
+            // player is in an idle state, so we reset before initializing a sound
+            reset();
+            initializeSound(sound);
+            return;
+
+        }
+
+        if (!isAbleToPlay())
+        {
+            // if the current state means that we are not able to play (but not idle, then move it to stop and to
+            // prepare, to be played when possible
+            stop();
+            prepareSound(sound, true);
+            return;
+        }
+
+        playerState = MediaPlayerState.STARTED;
+
+        player.start();
+
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+        {
+            @Override
+            public void onCompletion(MediaPlayer mp)
+            {
+                playerState = MediaPlayerState.PLAYBACK_COMPLETED;
+
+                stop();
+
+                sound.onSoundComplete(sound);
+            }
+        });
+    }
+
+    private void reset()
+    {
+        lastSound = null;
+
         playerState = MediaPlayerState.IDLE;
         player.reset();
     }
@@ -156,8 +195,6 @@ public final class SoundManager
         {
             playerState = MediaPlayerState.STOPPED;
             player.stop();
-
-            reset();
         }
     }
 
@@ -186,7 +223,18 @@ public final class SoundManager
         }
     }
 
-    private boolean isAbleToPlay() {
+    public long getCurrentSoundDuration()
+    {
+        return player.getDuration();
+    }
+
+    public long getCurrentSoundPosition()
+    {
+        return player.getCurrentPosition();
+    }
+
+    private boolean isAbleToPlay()
+    {
         return playerState == MediaPlayerState.PREPARED || playerState == MediaPlayerState.STARTED ||
                 playerState ==  MediaPlayerState.PAUSED || playerState == MediaPlayerState.PLAYBACK_COMPLETED;
     }

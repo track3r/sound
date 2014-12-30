@@ -14,12 +14,15 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 {
     private static final String TAG = Sound.class.getSimpleName();
 
-    private final HaxeObject haxeObject;
+    private final HaxeObject haxeSound;
     private final String fileUrl;
 
     private float volume;
     private boolean loop;
     private SoundState state;
+
+    private long duration;
+    private long position;
 
     private boolean playAfterPreload;
 
@@ -28,14 +31,17 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         return new Sound(haxeObject, fileUrl);
     }
 
-    private Sound(final HaxeObject haxeObject, final String fileUrl)
+    private Sound(final HaxeObject haxeSound, final String fileUrl)
     {
-        this.haxeObject = haxeObject;
+        this.haxeSound = haxeSound;
         this.fileUrl = fileUrl;
 
         volume = 1.0f;
         loop = false;
         state = SoundState.UNLOADED;
+
+        duration = -1;
+        position = 0;
 
         Log.d(TAG, "Sound created for file: " + fileUrl);
     }
@@ -52,17 +58,19 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         state = SoundState.LOADING;
         this.playAfterPreload = playAfterPreload;
 
-        SoundManager.getSharedInstance().preloadSound(this);
+        SoundManager.getSharedInstance().initializeSound(this);
     }
 
     public void playSound()
     {
         Log.d(TAG, "Sound playing");
 
-        if (state == SoundState.UNLOADED) {
+        if (state == SoundState.UNLOADED)
+        {
             preloadSound(true);
             return;
-        } else if (state != SoundState.IDLE) {
+        } else if (state != SoundState.IDLE)
+        {
             return;
         }
 
@@ -85,6 +93,25 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         state = SoundState.IDLE;
 
         SoundManager.getSharedInstance().stop();
+
+        // reset sound position
+        position = 0;
+    }
+
+    public void pauseSound()
+    {
+        Log.d(TAG, "Sound paused");
+
+        if (state != SoundState.PLAYING) {
+            return;
+        }
+
+        state = SoundState.IDLE;
+
+        SoundManager.getSharedInstance().pause();
+
+        // cache current sound position on pause
+        position = SoundManager.getSharedInstance().getCurrentSoundPosition();
     }
 
     public void setVolume(final float volume)
@@ -93,8 +120,9 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
         this.volume = volume;
 
-        if (state == SoundState.PLAYING)
+        if (state != SoundState.UNLOADED)
         {
+            // update immediately if the sound is loaded
             SoundManager.getSharedInstance().setVolume(volume);
         }
     }
@@ -105,32 +133,52 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
         this.loop = loop;
 
-        if (state == SoundState.PLAYING)
+        if (state != SoundState.UNLOADED)
         {
+            // update immediately if the sound is loaded
             SoundManager.getSharedInstance().setLoop(loop);
         }
     }
 
-    public float getLength()
+    public float getDuration()
     {
-        Log.d(TAG, "Get length");
+        Log.d(TAG, "Get duration");
 
-        // TODO
-        return 0.0f;
+        if (duration == -1 && state != SoundState.UNLOADED)
+        {
+            // update the duration value, if it is still the default value
+            duration = SoundManager.getSharedInstance().getCurrentSoundDuration();
+        }
+
+        return duration;
     }
 
     public float getPosition()
     {
         Log.d(TAG, "Get position");
 
-        // TODO
-        return 0.0f;
+        if (state == SoundState.PLAYING)
+        {
+            // always cache the last position in case it changes state too quickly
+            position = SoundManager.getSharedInstance().getCurrentSoundPosition();
+        }
+
+        return position;
+    }
+
+    public void unload()
+    {
+        state = SoundState.UNLOADED;
+        position = 0;
     }
 
     @Override
-    public void onSoundReady(final Sound sound)
+    public void onSoundReady(final Sound sound, final long soundDurationMillis)
     {
+        duration = soundDurationMillis;
         state = SoundState.IDLE;
+
+        haxeSound.call0("onSoundLoadCompleted");
 
         if (playAfterPreload)
         {
@@ -141,18 +189,14 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     @Override
     public void onSoundComplete(final Sound sound)
     {
+        position = (long) getDuration();
         state = SoundState.IDLE;
 
-        // TODO notify haxe object
+        haxeSound.call0("onPlaybackCompleted");
     }
 
     public String getFileUrl()
     {
         return fileUrl;
-    }
-
-    public boolean isReady()
-    {
-        return state != SoundState.UNLOADED;
     }
 }

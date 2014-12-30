@@ -8,5 +8,5 @@ import org.haxe.duell.sound.Sound;
  */
 public interface OnSoundReadyListener
 {
-    void onSoundReady(Sound sound);
+    void onSoundReady(Sound sound, long soundDurationMillis);
 }

@@ -21,27 +21,42 @@ class Sound
     "playSound","()V");
     private static var stopSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "stopSound","()V");
+    private static var pauseSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "pauseSound","()V");
     private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "setVolume","(F)V");
     private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "setLoop","(Z)V");
-    private static var getLengthNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "getLength","()F");
+    private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "getDuration","()F");
     private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "getPosition","()F");
 
-    private var javaSound:Dynamic;
+    private var javaSound: Dynamic;
+
+    public var loadCallback: Sound -> Void;
 
     public var volume(default, set): Float;
     public var loop(default, set): Bool;
     public var length(get, never): Float;
     public var position(get, never): Float;
-
     public var onPlaybackComplete(default, null): Signal1<Sound>;
+
+    public static function load(fileUrl: String, loadCallback: Sound -> Void): Void
+    {
+        var sound : Sound = new Sound(fileUrl);
+        sound.loadCallback = loadCallback;
+        sound.preload();
+    }
 
     public function new(fileUrl: String)
     {
-        javaSound = createNative(null, fileUrl);
+        javaSound = createNative(this, fileUrl);
+    }
+
+    private function preload(): Void
+    {
+        preloadSoundNative(javaSound, false);
     }
 
     public function play(): Void
@@ -56,7 +71,7 @@ class Sound
 
     public function pause(): Void
     {
-        stop();
+        pauseSoundNative(javaSound);
     }
 
     public function mute(): Void
@@ -75,21 +90,33 @@ class Sound
     /// here you can do platform specific logic to make the sound loop
     public function set_loop(value: Bool): Bool
     {
-        loop = value;
-        setLoopNative(javaSound, loop);
+        if (loop != value)
+        {
+            loop = value;
+            setLoopNative(javaSound, loop);
+        }
+
         return loop;
     }
 
     /// get the length of the current sound
     public function get_length(): Float
     {
-        return getLengthNative(javaSound);
+        return getDurationNative(javaSound);
     }
 
     /// get the current time of the current sound
     public function get_position(): Float
     {
         return getPositionNative(javaSound);
+    }
+
+    public function onSoundLoadCompleted(): Void
+    {
+        if (loadCallback != null)
+        {
+            loadCallback(this);
+        }
     }
 
     public function onPlaybackCompleted(): Void
