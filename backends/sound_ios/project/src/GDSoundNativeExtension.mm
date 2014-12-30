@@ -39,7 +39,7 @@ DEFINE_PRIM(soundios_intialize,1);
 static value soundios_play()
 {
     NSLog(@"soundios_play");
-     [[OALSimpleAudio sharedInstance] playBg:SHOOT_SOUND];
+    [[OALSimpleAudio sharedInstance] playBg:SHOOT_SOUND];
     return alloc_null();
 }
 DEFINE_PRIM(soundios_play,0);
@@ -47,6 +47,7 @@ DEFINE_PRIM(soundios_play,0);
 static value soundios_stop()
 {
     NSLog(@"soundios_stop");
+    [[OALSimpleAudio sharedInstance] stopEverything];
     return alloc_null();
 }
 DEFINE_PRIM(soundios_stop,0);
@@ -54,7 +55,7 @@ DEFINE_PRIM(soundios_stop,0);
 static value soundios_pause()
 {
     NSLog(@"soundios_pause");
-    [OALSimpleAudio sharedInstance].paused = YES;
+    [OALSimpleAudio sharedInstance].paused = ![OALSimpleAudio sharedInstance].paused;
     return alloc_null();
 }
 DEFINE_PRIM(soundios_pause,0);
