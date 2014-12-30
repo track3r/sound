@@ -21,7 +21,7 @@ class Sound
 
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
-    private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",1);
+    private static var initializeNativeFunc = Lib.load("soundios","soundios_intialize",1);
     private static var playNativeFunc = Lib.load("soundios","soundios_play",0);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",0);
     private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",0);

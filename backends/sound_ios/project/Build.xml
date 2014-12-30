@@ -6,11 +6,38 @@
 
         <compilerflag value="-Iinclude"/>
 
-        <file name="src/GDSoundNativeExtension.mm"/>
+        <file name="src/ALBuffer.m" />                          
+        <file name="src/ALSource.m" />                           
+        <file name="src/OALAction.m" />                         
+        <file name="src/OALAudioTracks.m" />
+        <file name="src/ALCaptureDevice.m" />                    
+        <file name="src/ALWrapper.m" />                         
+        <file name="src/OALActionManager.m" />                 
+        <file name="src/OALSimpleAudio.m" />
+        <file name="src/ALChannelSource.m" />                   
+        <!-- <file name="src/GDOALSound.m" />                         -->
+        <file name="src/OALAudioActions.m" />                 
+        <file name="src/OALSuspendHandler.m" />
+        <file name="src/ALContext.m" />                         
+        <file name="src/GDSoundNativeExtension.mm" />           
+        <file name="src/OALAudioFile.m" />                      
+        <file name="src/OALTools.m" />
+        <file name="src/ALDevice.m" />                          
+        <file name="src/IOSVersion.m" />                        
+        <file name="src/OALAudioSession.m" />                  
+        <file name="src/OALUtilityActions.m" />
+        <file name="src/ALListener.m" />                        
+        <file name="src/NSMutableArray+WeakReferences.m" />     
+        <file name="src/OALAudioTrack.m" />                     
+        <file name="src/OpenALManager.m" />
+        <file name="src/ALSoundSourcePool.m" />                 
+        <file name="src/NSMutableDictionary+WeakReferences.m" /> 
+        <file name="src/OALAudioTrackNotifications.m" />       
+        <file name="src/mach_timing.c" />
 
     </files>
 
-    <target id="NDLL" output="${LIBPREFIX}soundios{DBG}${LIBEXTRA}" tool="linker" toolid="${STD_MODULE_LINK}">
+    <target id="NDLL" output="${LIBPREFIX}soundios${DBG}${LIBEXTRA}" tool="linker" toolid="${STD_MODULE_LINK}">
 
         <outdir name="../ndll/${BINDIR}"/>
         <files id="src"/>

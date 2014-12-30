@@ -3,10 +3,10 @@
 #endif
 #import <Foundation/Foundation.h>
 #include <hx/CFFI.h>
+#import "ObjectAL.h"
 
 value *__soundCompleteCallback = NULL;
-
-
+#define SHOOT_SOUND @"assets/shotgun.mp3"
 ///------------------------------------------------------------------------------------------------
 static value soundios_registerCallback(value callback)
 {
@@ -17,7 +17,6 @@ static value soundios_registerCallback(value callback)
         __soundCompleteCallback = alloc_root();
     }
     *__soundCompleteCallback = callback;
-
     return alloc_null();
 }
 DEFINE_PRIM (soundios_registerCallback, 1);
@@ -25,6 +24,14 @@ DEFINE_PRIM (soundios_registerCallback, 1);
 static value soundios_intialize(value soundData)
 {
     NSLog(@"soundios_intialize");
+    [OALSimpleAudio sharedInstance].allowIpod = NO;
+    
+    // Mute all audio if the silent switch is turned on.
+    [OALSimpleAudio sharedInstance].honorSilentSwitch = YES;
+    
+    // This loads the sound effects into memory so that
+    // there's no delay when we tell it to play them.
+    [[OALSimpleAudio sharedInstance] preloadEffect:SHOOT_SOUND];
     return alloc_null();
 }
 DEFINE_PRIM(soundios_intialize,1);
@@ -32,6 +39,7 @@ DEFINE_PRIM(soundios_intialize,1);
 static value soundios_play()
 {
     NSLog(@"soundios_play");
+     [[OALSimpleAudio sharedInstance] playBg:SHOOT_SOUND];
     return alloc_null();
 }
 DEFINE_PRIM(soundios_play,0);
@@ -46,6 +54,7 @@ DEFINE_PRIM(soundios_stop,0);
 static value soundios_pause()
 {
     NSLog(@"soundios_pause");
+    [OALSimpleAudio sharedInstance].paused = YES;
     return alloc_null();
 }
 DEFINE_PRIM(soundios_pause,0);
