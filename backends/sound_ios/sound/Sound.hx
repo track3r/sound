@@ -32,7 +32,7 @@ class Sound
 
     public var onPlaybackComplete(default,null): Signal1<Sound>;
 
-    public function new(data: Data)
+    public function new(fileUrl: String)
     {
         initializeNativeFunc(data);
     }

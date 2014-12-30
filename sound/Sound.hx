@@ -14,7 +14,7 @@ extern class Sound
     public var position(null,get_position): Float;
 
     public var onPlaybackComplete(default,null): Signal1;
-    public function new(data: Data);
+    public function new(fileUrl: String);
     public function play(): Void;
     public function stop(): Void;
     public function pause(): Void;

@@ -22,11 +22,9 @@ class Sound
 
     private var flashSound: flash.media.Sound;
     private var flashSoundChannel: SoundChannel;
-    public function new(data: Data)
+    public function new(fileUrl: String)
     {
-        flashSound = new flash.media.Sound();
-        data.byteArray.position=0;
-        flashSound.loadCompressedDataFromByteArray(data.byteArray, data.byteArray.length);
+        flashSound = new flash.media.Sound(new flash.net.URLRequest(fileUrl));
     }
 
     public function play(): Void

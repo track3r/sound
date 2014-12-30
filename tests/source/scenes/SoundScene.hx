@@ -106,24 +106,9 @@ class SoundScene extends Scene
 
     private function loadSound(filename: String): Void
     {
-        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + filename;
-        var fileExtension: String = fileUrl.split(".").pop().toLowerCase();
-
-        if(fileExtension != "mp3")
-        {
-            throw "other formats are suported for now";
-        }
-
-        var reader: filesystem.FileReader = FileSystem.instance().getFileReader(fileUrl);
-        if (reader == null)
-        {
-            throw "Couldnt find file for fileUrl" + fileUrl;
-        }
-
-        var fileSize = FileSystem.instance().getFileSize(fileUrl);
-        var data = new Data(fileSize);
-        reader.readIntoData(data);
-        sound = new Sound(data);
+        var fileUrl: String = "assets/" + filename;
+       
+        sound = new Sound(fileUrl);
         sound.play();
     }
 
