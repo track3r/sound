@@ -6,6 +6,7 @@
 #import "ObjectAL.h"
 
 value *__soundCompleteCallback = NULL;
+value *__currentSound = NULL;
 NSString *filePath;
 //convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
@@ -29,9 +30,8 @@ static value soundios_registerCallback(value callback)
 }
 DEFINE_PRIM (soundios_registerCallback, 1);
 ///--------------------------------------------------------------------
-static value soundios_intialize(value soundPath)
+static value soundios_intialize(value soundPath, value currentSound)
 {
-    NSLog(@"soundios_intialize");
     filePath = valueToNSString(soundPath);
 
     [OALSimpleAudio sharedInstance].allowIpod = NO;
@@ -42,21 +42,21 @@ static value soundios_intialize(value soundPath)
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
     [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
+    
+    val_call1(*__soundCompleteCallback,currentSound);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_intialize,1);
+DEFINE_PRIM(soundios_intialize,2);
 ///--------------------------------------------------------------------
 static value soundios_play()
 {
-    NSLog(@"soundios_play");
-    [[OALSimpleAudio sharedInstance] playBg:filePath];
+    [[OALSimpleAudio sharedInstance] playEffect:filePath];
     return alloc_null();
 }
 DEFINE_PRIM(soundios_play,0);
 ///--------------------------------------------------------------------
 static value soundios_stop()
 {
-    NSLog(@"soundios_stop");
     [[OALSimpleAudio sharedInstance] stopEverything];
     return alloc_null();
 }
@@ -64,7 +64,6 @@ DEFINE_PRIM(soundios_stop,0);
 ///--------------------------------------------------------------------
 static value soundios_pause()
 {
-    NSLog(@"soundios_pause");
     [OALSimpleAudio sharedInstance].paused = ![OALSimpleAudio sharedInstance].paused;
     return alloc_null();
 }
@@ -72,21 +71,18 @@ DEFINE_PRIM(soundios_pause,0);
 ///--------------------------------------------------------------------
 static value soundios_setLoop(value loop)
 {
-    NSLog(@"soundios_setLoop");
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setLoop,1);
 ///--------------------------------------------------------------------
 static value soundios_setVolume(value volume)
 {
-    NSLog(@"soundios_setVolume");
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setVolume,1);
 ///--------------------------------------------------------------------
 static value soundios_setMute(value mute)
 {
-    NSLog(@"soundios_setMute");
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setMute,1);

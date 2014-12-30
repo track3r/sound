@@ -17,11 +17,11 @@ class Sound
     public var loop(default, set_loop): Bool;
     public var length(get_length, null): Float;
     public var position(get_position, null): Float;
-
-
+    public var loadCallback: sound.Sound -> Void;
+    public var fileUrl: String;
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
-    private static var initializeNativeFunc = Lib.load("soundios","soundios_intialize",1);
+    private static var initializeNativeFunc = Lib.load("soundios","soundios_intialize",2);
     private static var playNativeFunc = Lib.load("soundios","soundios_play",0);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",0);
     private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",0);
@@ -29,14 +29,31 @@ class Sound
     private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",1);
     private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",1);
 
-
     public var onPlaybackComplete(default,null): Signal1<Sound>;
 
-    public function new(fileUrl: String)
+    public function new()
     {
-        initializeNativeFunc(data);
     }
-
+    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    {
+        var sound: Sound = new Sound();
+        sound.loadCallback = loadCallback;
+        sound.fileUrl = fileUrl;
+        sound.loadSoundFile();
+    }
+    public function loadSoundFile(): Void
+    {
+        registerCallbackNativeFunc(onSoundLoadedCallback);
+        initializeNativeFunc(fileUrl,this);
+    }
+    private function onSoundLoadedCallback(sound: sound.Sound): Void
+    {
+        if(sound.loadCallback != null)
+        {
+            trace("Sound Loaded Callback");
+            sound.loadCallback(this);
+        }
+    }
     public function play(): Void
     {
         playNativeFunc();
