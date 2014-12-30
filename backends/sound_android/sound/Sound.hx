@@ -4,51 +4,71 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
+import hxjni.JNI;
 import msignal.Signal;
-import types.Data;
+
 ///=================///
 /// Sound android   ///
 ///                 ///
 ///=================///
 class Sound
 {
-    public var volume(set_volume,default): Float;
-    public var loop(set_loop,default): Bool;
-    public var length(null,get_length): Float;
-    public var position(null,get_position): Float;
+    private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
+    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Sound;");
+    private static var preloadSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "preloadSound","(Z)V");
+    private static var playSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "playSound","()V");
+    private static var stopSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "stopSound","()V");
+    private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setVolume","(F)V");
+    private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setLoop","(Z)V");
+    private static var getLengthNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "getLength","()F");
+    private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "getPosition","()F");
 
+    private var javaSound:Dynamic;
 
-    public var onPlaybackComplete(default,null): Signal1;
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
+    public var length(get, never): Float;
+    public var position(get, never): Float;
 
-    public function new(data: Data)
+    public var onPlaybackComplete(default, null): Signal1<Sound>;
+
+    public function new(fileUrl: String)
     {
-        //TODO: Impliment me
+        javaSound = createNative(null, fileUrl);
     }
 
     public function play(): Void
     {
-        //TODO: Impliment me
+        playSoundNative(javaSound);
     }
 
     public function stop(): Void
     {
-        //TODO: Impliment me
+        stopSoundNative(javaSound);
     }
 
     public function pause(): Void
     {
-        //TODO: Impliment me
+        stop();
     }
 
     public function mute(): Void
     {
-        //TODO: Impliment me
+        this.volume = 0;
     }
 
     /// here you can do platform specific logic to set the sound volume
     public function set_volume(value: Float): Float
     {
-        volume = value;
+        volume = Math.max(Math.min(value, 0.0), 1.0);
+        setVolumeNative(javaSound, volume);
         return volume;
     }
 
@@ -56,22 +76,27 @@ class Sound
     public function set_loop(value: Bool): Bool
     {
         loop = value;
+        setLoopNative(javaSound, loop);
         return loop;
     }
 
     /// get the length of the current sound
     public function get_length(): Float
     {
-        //TODO: Impliment me
-        return 0.0;
+        return getLengthNative(javaSound);
     }
 
     /// get the current time of the current sound
     public function get_position(): Float
     {
-        //TODO: Impliment me
-        return 0.0;
+        return getPositionNative(javaSound);
     }
 
-
+    public function onPlaybackCompleted(): Void
+    {
+        if (onPlaybackComplete != null)
+        {
+            onPlaybackComplete.dispatch(this);
+        }
+    }
 }
