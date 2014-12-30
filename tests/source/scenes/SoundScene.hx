@@ -76,7 +76,10 @@ class SoundScene extends Scene
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            loadSound("shotgun.mp3");
+            if(sound != null)
+            {
+                sound.play();
+            }
         });
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
@@ -102,14 +105,15 @@ class SoundScene extends Scene
     override public function sceneWillAppear() : Void
     {
         createButtons();
+        loadSound("shotgun.mp3");
     }
 
     private function loadSound(filename: String): Void
     {
         var fileUrl: String = "assets/" + filename;
-       
-        sound = new Sound(fileUrl);
-        sound.play();
+        Sound.load(fileUrl, function(s:Sound){
+            sound = s;
+        });
     }
 
 }

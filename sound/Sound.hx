@@ -19,4 +19,5 @@ extern class Sound
     public function stop(): Void;
     public function pause(): Void;
     public function mute():Void;
+    public static function load(loadCallback: Void -> sound.Sound);
 }
