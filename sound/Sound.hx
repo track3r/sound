@@ -12,6 +12,8 @@ extern class Sound
     public var loop(set_loop,default): Bool;
     public var length(null,get_length): Float;
     public var position(null,get_position): Float;
+    public var loadCallback: sound.Sound -> Void;
+    public var fileUrl: String;
 
     public var onPlaybackComplete(default,null): Signal1;
     public function new(fileUrl: String);

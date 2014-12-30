@@ -19,12 +19,34 @@ class Sound
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
     public var onPlaybackComplete(default,null): Signal1<Sound>;
+    public var loadCallback: sound.Sound -> Void;
+    public var fileUrl: String;
 
     private var flashSound: flash.media.Sound;
     private var flashSoundChannel: SoundChannel;
-    public function new(fileUrl: String)
+    public function new()
     {
-        flashSound = new flash.media.Sound(new flash.net.URLRequest(fileUrl));
+        
+    }
+    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    {
+        var sound: Sound = new Sound();
+        sound.loadCallback = loadCallback;
+        sound.fileUrl = fileUrl;
+        sound.loadSoundFile();
+    }
+    public function loadSoundFile(): Void
+    {
+        flashSound = new flash.media.Sound();
+        flashSound.addEventListener(flash.events.Event.COMPLETE, function(event: flash.events.Event)
+        {
+            if(this.loadCallback != null)
+            {
+                this.loadCallback(this);
+            }
+        });
+
+        flashSound.load(new flash.net.URLRequest(fileUrl));
     }
 
     public function play(): Void
