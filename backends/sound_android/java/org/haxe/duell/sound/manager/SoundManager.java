@@ -49,9 +49,11 @@ public final class SoundManager
     {
         player = new MediaPlayer();
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+        player.setOnErrorListener(new MediaPlayer.OnErrorListener()
+        {
             @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
+            public boolean onError(MediaPlayer mp, int what, int extra)
+            {
                 playerState = MediaPlayerState.ERROR;
                 return false;
             }
@@ -79,7 +81,9 @@ public final class SoundManager
 
         String fileUrl = sound.getFileUrl();
 
-        if (fileUrl.startsWith("assets/")) {
+        // we're using the AssetManager, so we are automatically inside the path
+        if (fileUrl.startsWith("assets/"))
+        {
             fileUrl = fileUrl.substring(7);
         }
 
@@ -103,7 +107,8 @@ public final class SoundManager
         return true;
     }
 
-    private void replaceSound(Sound sound) {
+    private void replaceSound(final Sound sound)
+    {
         if (lastSound != null)
         {
             lastSound.unload();
@@ -112,7 +117,8 @@ public final class SoundManager
         lastSound = sound;
     }
 
-    private void prepareSound(final Sound sound, final boolean shouldPlay) {
+    private void prepareSound(final Sound sound, final boolean shouldPlay)
+    {
         // bind the prepare listener for THIS particular instance of sound
         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
         {
@@ -151,7 +157,6 @@ public final class SoundManager
             reset();
             initializeSound(sound);
             return;
-
         }
 
         if (!isAbleToPlay())
@@ -173,8 +178,6 @@ public final class SoundManager
             public void onCompletion(MediaPlayer mp)
             {
                 playerState = MediaPlayerState.PLAYBACK_COMPLETED;
-
-                stop();
 
                 sound.onSoundComplete(sound);
             }
