@@ -1,10 +1,13 @@
 package org.haxe.duell.sound;
 
 /**
- * Created by jcxavier on 30/12/14.
+ * @author jxav
+ * Copyright (c) 2014 GameDuell GmbH
  */
-public enum SoundState {
+public enum SoundState
+{
     UNLOADED,
+    LOADING,
     IDLE,
     PLAYING,
 }
