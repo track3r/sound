@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <library>
+	<platform-config>
+		<html5>
+			<body-section>
+				<script src="http://code.createjs.com/soundjs-0.5.2.min.js"> </script>
+			</body-section>
+		</html5>
+	</platform-config>
 </library>

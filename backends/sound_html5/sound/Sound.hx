@@ -5,6 +5,9 @@
  */
 package sound;
 import msignal.Signal;
+import createjs.soundjs.Sound;
+import createjs.soundjs.WebAudioPlugin;
+import createjs.soundjs.HTMLAudioPlugin;
 import types.Data;
 ///=================///
 /// Sound html5     ///
@@ -20,12 +23,10 @@ class Sound
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
 
-
-
-    public var onPlaybackComplete(default,null): Signal1;
-
     public function new()
     {
+        //fallback will be in the same order
+        createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
@@ -36,16 +37,24 @@ class Sound
     }
     public function loadSoundFile(): Void
     {
-        
+        createjs.soundjs.Sound.addEventListener("fileload", handleLoad);
+        createjs.soundjs.Sound.registerSound(fileUrl,fileUrl);
     }  
+    private function handleLoad(event: Dynamic): Void
+    {
+        if(this.loadCallback != null)
+        {
+            this.loadCallback(this);
+        }
+    }
     public function play(): Void
     {
-        //TODO: Impliment me
+        createjs.soundjs.Sound.play(fileUrl);
     }
 
     public function stop(): Void
     {
-        //TODO: Impliment me
+        createjs.soundjs.Sound.stop();
     }
 
     public function pause(): Void

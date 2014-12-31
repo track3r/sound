@@ -5,7 +5,6 @@
  */
 package scenes;
 
-import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
 import game_engine.systems.RelationSystem;
 import game_engine.systems.Camera2DSystem;
@@ -16,8 +15,6 @@ import game_engine.core.SimpleButton;
 import renderer.texture.Texture2D;
 import game_engine.core.Scene;
 
-import types.Data;
-import format.mp3.Data;
 import sound.Sound;
 import ash.core.Entity;
 class SoundScene extends Scene

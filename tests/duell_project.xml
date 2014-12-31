@@ -9,8 +9,7 @@
 
 	<duelllib name="sound" version="master"/>
     <duelllib name="duellkit" version="master"/>
-    <duelllib name="game_engine" version="master"/>
-    <duelllib name="game_engine_extensions" version="master"/>
+    <duelllib name="game_engine" version="2.*.*"/>
 
     <platform-config>
     </platform-config>
