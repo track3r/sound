@@ -4,6 +4,7 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
+
 import hxjni.JNI;
 import msignal.Signal;
 
@@ -16,21 +17,21 @@ class Sound
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
     "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Sound;");
     private static var preloadSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "preloadSound","(Z)V");
+    "preloadSound", "(Z)V");
     private static var playSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "playSound","()V");
+    "playSound", "()V");
     private static var stopSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "stopSound","()V");
+    "stopSound", "()V");
     private static var pauseSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "pauseSound","()V");
+    "pauseSound", "()V");
     private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "setVolume","(F)V");
+    "setVolume", "(F)V");
     private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "setLoop","(Z)V");
+    "setLoop", "(Z)V");
     private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "getDuration","()F");
+    "getDuration", "()F");
     private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "getPosition","()F");
+    "getPosition", "()F");
 
     private var javaSound: Dynamic;
 
@@ -44,7 +45,7 @@ class Sound
 
     public static function load(fileUrl: String, loadCallback: Sound -> Void): Void
     {
-        var sound : Sound = new Sound(fileUrl);
+        var sound: Sound = new Sound(fileUrl);
         sound.loadCallback = loadCallback;
         sound.preload();
     }
@@ -79,7 +80,6 @@ class Sound
         this.volume = 0;
     }
 
-    /// here you can do platform specific logic to set the sound volume
     public function set_volume(value: Float): Float
     {
         volume = Math.max(Math.min(value, 0.0), 1.0);
@@ -87,7 +87,6 @@ class Sound
         return volume;
     }
 
-    /// here you can do platform specific logic to make the sound loop
     public function set_loop(value: Bool): Bool
     {
         if (loop != value)
@@ -99,13 +98,11 @@ class Sound
         return loop;
     }
 
-    /// get the length of the current sound
     public function get_length(): Float
     {
         return getDurationNative(javaSound);
     }
 
-    /// get the current time of the current sound
     public function get_position(): Float
     {
         return getPositionNative(javaSound);

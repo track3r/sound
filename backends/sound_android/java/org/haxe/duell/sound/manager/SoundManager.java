@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
+ */
 package org.haxe.duell.sound.manager;
 
+import android.annotation.TargetApi;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.util.Log;
 import org.haxe.duell.DuellActivity;
 import org.haxe.duell.sound.Sound;
@@ -13,11 +19,12 @@ import java.lang.ref.WeakReference;
 
 /**
  * @author jxav
- * Copyright (c) 2014 GameDuell GmbH
  */
-public final class SoundManager
+@TargetApi(Build.VERSION_CODES.FROYO)
+public final class SoundManager implements AudioManager.OnAudioFocusChangeListener
 {
     private static final String TAG = SoundManager.class.getSimpleName();
+    private static final float LOW_VOLUME = 0.1f;
 
     private static SoundManager instance = null;
 
@@ -25,6 +32,7 @@ public final class SoundManager
     private MediaPlayer player;
 
     private Sound lastSound;
+    private float playerVolume;
 
     private final WeakReference<AssetManager> assetManager;
 
@@ -45,6 +53,10 @@ public final class SoundManager
         create();
     }
 
+    //
+    // Lifecycle and focus handling
+    //
+
     private void create()
     {
         player = new MediaPlayer();
@@ -55,21 +67,93 @@ public final class SoundManager
             public boolean onError(MediaPlayer mp, int what, int extra)
             {
                 playerState = MediaPlayerState.ERROR;
+
+                reset();
+
                 return false;
             }
         });
 
         reset();
+
+        FocusManager.request(this);
     }
+
+    private void release()
+    {
+        FocusManager.release(this);
+
+        if (player != null)
+        {
+            playerState = MediaPlayerState.END;
+            player.release();
+            player = null;
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(final int focusChange)
+    {
+        switch (focusChange)
+        {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                // resume playback
+                if (playerState == MediaPlayerState.STARTED || playerState == MediaPlayerState.PAUSED)
+                {
+                    play(lastSound);
+                }
+
+                // set the old volume
+                setVolume(playerVolume);
+
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS:
+                // Lost focus for an unbounded amount of time: stop playback and release media player
+                reset();
+                release();
+
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                // Lost focus for a short time, but we have to stop playback. We don't release the media player
+                // because playback is likely to resume
+                if (playerState == MediaPlayerState.STARTED)
+                {
+                    pause();
+                }
+
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                // Lost focus for a short time, but it's ok to keep playing at an attenuated level
+                if (playerVolume < LOW_VOLUME && player != null)
+                {
+                    player.setVolume(LOW_VOLUME, LOW_VOLUME);
+                }
+
+                break;
+        }
+    }
+
+    //
+    // State handling
+    //
 
     public synchronized boolean initializeSound(final Sound sound)
     {
         AssetManager assets = assetManager.get();
 
-        // if player is not set or asset manager was called, we're in a VERY bad state
-        if (player == null || assets == null)
+        // if asset manager is null, we're in a VERY bad state
+        if (assets == null)
         {
             return false;
+        }
+
+        // recreate player if needed, we're in a recoverable state since initialize operates from IDLE
+        if (player == null)
+        {
+            create();
         }
 
         // if player is already playing, force it to go back to the idle state
@@ -107,44 +191,45 @@ public final class SoundManager
         return true;
     }
 
-    private void replaceSound(final Sound sound)
-    {
-        if (lastSound != null)
-        {
-            lastSound.unload();
-        }
-
-        lastSound = sound;
-    }
-
     private void prepareSound(final Sound sound, final boolean shouldPlay)
     {
-        // bind the prepare listener for THIS particular instance of sound
-        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+        if (player != null)
         {
-            @Override
-            public void onPrepared(MediaPlayer mp)
+            // bind the prepare listener for THIS particular instance of sound
+            player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
             {
-                playerState = MediaPlayerState.PREPARED;
+                @Override
+                public void onPrepared(MediaPlayer mp)
+                {
+                    playerState = MediaPlayerState.PREPARED;
 
-                // if it should play, do so immediately, otherwise notify the listeners
-                if (shouldPlay)
-                {
-                    play(sound);
-                } else
-                {
-                    sound.onSoundReady(sound, getCurrentSoundDuration());
+                    // if it should play, do so immediately, otherwise notify the listeners
+                    if (shouldPlay)
+                    {
+                        play(sound);
+                    } else
+                    {
+                        sound.onSoundReady(sound, getCurrentSoundDuration());
+                    }
                 }
-            }
-        });
+            });
 
-        // prepare the sound
-        playerState = MediaPlayerState.PREPARING;
-        player.prepareAsync();
+            // prepare the sound
+            playerState = MediaPlayerState.PREPARING;
+            player.prepareAsync();
+        }
     }
 
     public void play(final Sound sound)
     {
+        FocusManager.request(this);
+
+        // recreate player if needed, we're in a recoverable state
+        if (player == null)
+        {
+            create();
+        }
+
         if (playerState == MediaPlayerState.IDLE || lastSound != sound)
         {
             // we are changing songs, if it is playing, stop the current song
@@ -177,6 +262,8 @@ public final class SoundManager
             @Override
             public void onCompletion(MediaPlayer mp)
             {
+                FocusManager.onSoundComplete(SoundManager.this);
+
                 playerState = MediaPlayerState.PLAYBACK_COMPLETED;
 
                 sound.onSoundComplete(sound);
@@ -184,16 +271,10 @@ public final class SoundManager
         });
     }
 
-    private void reset()
-    {
-        lastSound = null;
-
-        playerState = MediaPlayerState.IDLE;
-        player.reset();
-    }
-
     public void stop()
     {
+        FocusManager.release(this);
+
         if (player != null)
         {
             playerState = MediaPlayerState.STOPPED;
@@ -203,6 +284,8 @@ public final class SoundManager
 
     public void pause()
     {
+        FocusManager.release(this);
+
         if (player != null)
         {
             playerState = MediaPlayerState.PAUSED;
@@ -210,10 +293,26 @@ public final class SoundManager
         }
     }
 
+    private void reset()
+    {
+        replaceSound(null);
+
+        if (player != null)
+        {
+            playerState = MediaPlayerState.IDLE;
+            player.reset();
+        }
+    }
+
+    //
+    // Non-state affecting
+    //
+
     public void setVolume(final float volume)
     {
         if (player != null)
         {
+            playerVolume = volume;
             player.setVolume(volume, volume);
         }
     }
@@ -236,9 +335,23 @@ public final class SoundManager
         return player.getCurrentPosition();
     }
 
+    //
+    // Helpers
+    //
+
+    private void replaceSound(final Sound sound)
+    {
+        if (lastSound != null)
+        {
+            lastSound.unload();
+        }
+
+        lastSound = sound;
+    }
+
     private boolean isAbleToPlay()
     {
         return playerState == MediaPlayerState.PREPARED || playerState == MediaPlayerState.STARTED ||
-                playerState ==  MediaPlayerState.PAUSED || playerState == MediaPlayerState.PLAYBACK_COMPLETED;
+                playerState == MediaPlayerState.PAUSED || playerState == MediaPlayerState.PLAYBACK_COMPLETED;
     }
 }

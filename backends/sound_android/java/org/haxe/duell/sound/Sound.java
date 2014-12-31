@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
+ */
 package org.haxe.duell.sound;
 
 import android.util.Log;
@@ -8,7 +12,6 @@ import org.haxe.duell.sound.manager.SoundManager;
 
 /**
  * @author jxav
- * Copyright (c) 2014 GameDuell GmbH
  */
 public final class Sound implements OnSoundReadyListener, OnSoundCompleteListener
 {
@@ -86,7 +89,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Sound stopped");
 
-        if (state != SoundState.PLAYING) {
+        if (state != SoundState.PLAYING)
+        {
             return;
         }
 
@@ -102,7 +106,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Sound paused");
 
-        if (state != SoundState.PLAYING) {
+        if (state != SoundState.PLAYING)
+        {
             return;
         }
 
