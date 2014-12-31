@@ -4,74 +4,126 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
+import hxjni.JNI;
 import msignal.Signal;
-import types.Data;
+
 ///=================///
 /// Sound android   ///
 ///                 ///
 ///=================///
 class Sound
 {
-    public var volume(set_volume,default): Float;
-    public var loop(set_loop,default): Bool;
-    public var length(null,get_length): Float;
-    public var position(null,get_position): Float;
+    private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
+    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Sound;");
+    private static var preloadSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "preloadSound","(Z)V");
+    private static var playSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "playSound","()V");
+    private static var stopSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "stopSound","()V");
+    private static var pauseSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "pauseSound","()V");
+    private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setVolume","(F)V");
+    private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setLoop","(Z)V");
+    private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "getDuration","()F");
+    private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "getPosition","()F");
 
+    private var javaSound: Dynamic;
 
-    public var onPlaybackComplete(default,null): Signal1;
+    public var loadCallback: Sound -> Void;
 
-    public function new(data: Data)
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
+    public var length(get, never): Float;
+    public var position(get, never): Float;
+    public var onPlaybackComplete(default, null): Signal1<Sound>;
+
+    public static function load(fileUrl: String, loadCallback: Sound -> Void): Void
     {
-        //TODO: Impliment me
+        var sound : Sound = new Sound(fileUrl);
+        sound.loadCallback = loadCallback;
+        sound.preload();
+    }
+
+    public function new(fileUrl: String)
+    {
+        javaSound = createNative(this, fileUrl);
+    }
+
+    private function preload(): Void
+    {
+        preloadSoundNative(javaSound, false);
     }
 
     public function play(): Void
     {
-        //TODO: Impliment me
+        playSoundNative(javaSound);
     }
 
     public function stop(): Void
     {
-        //TODO: Impliment me
+        stopSoundNative(javaSound);
     }
 
     public function pause(): Void
     {
-        //TODO: Impliment me
+        pauseSoundNative(javaSound);
     }
 
     public function mute(): Void
     {
-        //TODO: Impliment me
+        this.volume = 0;
     }
 
     /// here you can do platform specific logic to set the sound volume
     public function set_volume(value: Float): Float
     {
-        volume = value;
+        volume = Math.max(Math.min(value, 0.0), 1.0);
+        setVolumeNative(javaSound, volume);
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
     public function set_loop(value: Bool): Bool
     {
-        loop = value;
+        if (loop != value)
+        {
+            loop = value;
+            setLoopNative(javaSound, loop);
+        }
+
         return loop;
     }
 
     /// get the length of the current sound
     public function get_length(): Float
     {
-        //TODO: Impliment me
-        return 0.0;
+        return getDurationNative(javaSound);
     }
 
     /// get the current time of the current sound
     public function get_position(): Float
     {
-        //TODO: Impliment me
-        return 0.0;
+        return getPositionNative(javaSound);
     }
 
+    public function onSoundLoadCompleted(): Void
+    {
+        if (loadCallback != null)
+        {
+            loadCallback(this);
+        }
+    }
 
+    public function onPlaybackCompleted(): Void
+    {
+        if (onPlaybackComplete != null)
+        {
+            onPlaybackComplete.dispatch(this);
+        }
+    }
 }
