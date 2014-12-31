@@ -5,7 +5,7 @@
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
 
-value *__soundCompleteCallback = NULL;
+value *__soundLoadComplete = NULL;
 value *__currentSound = NULL;
 NSString *filePath;
 //convert value String coming from haxe to NSString
@@ -21,11 +21,11 @@ static value soundios_registerCallback(value callback)
 {
     val_check_function(callback, 1); // Is Func ?
 
-    if(__soundCompleteCallback == NULL)
+    if(__soundLoadComplete == NULL)
     {
-        __soundCompleteCallback = alloc_root();
+        __soundLoadComplete = alloc_root();
     }
-    *__soundCompleteCallback = callback;
+    *__soundLoadComplete = callback;
     return alloc_null();
 }
 DEFINE_PRIM (soundios_registerCallback, 1);
@@ -43,7 +43,7 @@ static value soundios_intialize(value soundPath, value currentSound)
     // there's no delay when we tell it to play them.
     [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
     
-    val_call1(*__soundCompleteCallback,currentSound);
+    val_call1(*__soundLoadComplete,currentSound);
     return alloc_null();
 }
 DEFINE_PRIM(soundios_intialize,2);

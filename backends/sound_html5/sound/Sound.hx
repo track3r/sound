@@ -12,19 +12,32 @@ import types.Data;
 ///=================///
 class Sound
 {
-    public var volume(set_volume,default): Float;
-    public var loop(set_loop,default): Bool;
-    public var length(null,get_length): Float;
-    public var position(null,get_position): Float;
+    public var volume(default,set_volume): Float;
+    public var loop(default,set_loop): Bool;
+    public var length(get_length,null): Float;
+    public var position(get_position,null): Float;
+    public var onPlaybackComplete(default,null): Signal1<Sound>;
+    public var loadCallback: sound.Sound -> Void;
+    public var fileUrl: String;
+
 
 
     public var onPlaybackComplete(default,null): Signal1;
 
-    public function new(data: Data)
+    public function new()
     {
-        //TODO: Impliment me
     }
-
+    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    {
+        var sound: Sound = new Sound();
+        sound.loadCallback = loadCallback;
+        sound.fileUrl = fileUrl;
+        sound.loadSoundFile();
+    }
+    public function loadSoundFile(): Void
+    {
+        
+    }  
     public function play(): Void
     {
         //TODO: Impliment me
