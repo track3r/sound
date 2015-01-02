@@ -59,6 +59,7 @@ class Sound
         if(flashSoundChannel != null)
         {
             flashSoundChannel.stop();
+            flashSoundChannel = null;
         }
     }
 

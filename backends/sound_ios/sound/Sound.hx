@@ -19,15 +19,17 @@ class Sound
     public var position(get_position, null): Float;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
+    public var nativeSoundHandle: Dynamic;
+    public var nativeSoundChannel: Dynamic;
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
     private static var initializeNativeFunc = Lib.load("soundios","soundios_intialize",2);
-    private static var playNativeFunc = Lib.load("soundios","soundios_play",0);
-    private static var stopNativeFunc = Lib.load("soundios","soundios_stop",0);
-    private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",0);
-    private static var setLoopNativeFunc = Lib.load("soundios","soundios_setLoop",1);
-    private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",1);
-    private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",1);
+    private static var playNativeFunc = Lib.load("soundios","soundios_play",1);
+    private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
+    private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",2);
+    private static var setLoopNativeFunc = Lib.load("soundios","soundios_setLoop",2);
+    private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",2);
+    private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
 
     public var onPlaybackComplete(default,null): Signal1<Sound>;
 
@@ -46,39 +48,40 @@ class Sound
         registerCallbackNativeFunc(onSoundLoadedCallback);
         initializeNativeFunc(fileUrl,this);
     }
-    private function onSoundLoadedCallback(sound: sound.Sound): Void
+    private function onSoundLoadedCallback(nativeSoundHandle: Dynamic): Void
     {
-        if(sound.loadCallback != null)
+        this.nativeSoundHandle = nativeSoundHandle;
+        if(this.loadCallback != null)
         {
             trace("Sound Loaded Callback");
-            sound.loadCallback(this);
+            this.loadCallback(this);
         }
     }
     public function play(): Void
     {
-        playNativeFunc();
+        nativeSoundChannel = playNativeFunc(nativeSoundHandle);
     }
 
     public function stop(): Void
     {
-        stopNativeFunc();
+        stopNativeFunc(nativeSoundChannel);
     }
 
     public function pause(): Void
     {
-        pauseNativeFunc();
+        pauseNativeFunc(nativeSoundChannel,true);
     }
 
     public function mute(): Void
     {
-        setMuteNativeFunc(true);
+        setMuteNativeFunc(nativeSoundChannel, true);
     }
 
     /// here you can do platform specific logic to set the sound volume
     public function set_volume(value: Float): Float
     {
         volume = value;
-        setVolumeNativeFunc(volume);
+        setVolumeNativeFunc(nativeSoundChannel, volume);
         return volume;
     }
 
@@ -86,7 +89,7 @@ class Sound
     public function set_loop(value: Bool): Bool
     {
         loop = value;
-        setLoopNativeFunc(loop);
+        setLoopNativeFunc(nativeSoundChannel, loop);
         return loop;
     }
 

@@ -22,14 +22,22 @@ class Sound
     public var onPlaybackComplete(default,null): Signal1<Sound>;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
+    private var soundInstance: createjs.soundjs.SoundInstance;
 
-    public function new()
+    private static var pluginsRegistered: Bool = false; 
+
+    private function new()
     {
-        //fallback will be in the same order
-        createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
+        if(!pluginsRegistered)
+        {
+            //fallback will be in the same order
+            createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
+            pluginsRegistered = true;
+        }
+
         var sound: Sound = new Sound();
         sound.loadCallback = loadCallback;
         sound.fileUrl = fileUrl;
@@ -49,12 +57,16 @@ class Sound
     }
     public function play(): Void
     {
-        createjs.soundjs.Sound.play(fileUrl);
+        soundInstance = createjs.soundjs.Sound.play(fileUrl);
     }
 
     public function stop(): Void
     {
-        createjs.soundjs.Sound.stop();
+        if(soundInstance != null)
+        {
+            soundInstance.stop();
+            soundInstance = null;
+        }
     }
 
     public function pause(): Void
