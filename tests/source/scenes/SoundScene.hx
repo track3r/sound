@@ -35,8 +35,12 @@ class SoundScene extends Scene
     private static var playBtn : SimpleButton;
     private static var stopBtn : SimpleButton;
 
+    private static var playBtn2 : SimpleButton;
+    private static var stopBtn2 : SimpleButton;
+
     //sound
     private var sound: Sound;
+    private var sound2: Sound;
 
     override public function initScene() : Void
     {
@@ -85,6 +89,32 @@ class SoundScene extends Scene
                 sound.stop();
             }
         });
+
+        playBtn2 = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
+        playBtn2.transform.x = 50;
+        playBtn2.transform.y = 200;
+
+        stopBtn2 = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
+        stopBtn2.transform.x = 250;
+        stopBtn2.transform.y = 200;
+
+        root.addChild(playBtn2);
+        root.addChild(stopBtn2);
+
+        playBtn2.settings.onButtonUp.add(function(btn: Entity)
+        {
+            if(sound2 != null)
+            {
+                sound2.play();
+            }
+        });
+        stopBtn2.settings.onButtonUp.add(function(btn: Entity)
+        {
+            if(sound2 != null)
+            {
+                sound2.stop();
+            }
+        });
     }
 
     private function registerSystems () : Void
@@ -102,14 +132,19 @@ class SoundScene extends Scene
     override public function sceneWillAppear() : Void
     {
         createButtons();
-        loadSound("shotgun.mp3");
+        loadSound("shotgun.mp3", "healicopter.mp3");
     }
 
-    private function loadSound(filename: String): Void
+    private function loadSound(filename: String, filename2: String): Void
     {
         var fileUrl: String = "assets/" + filename;
+        var fileUrl2: String = "assets/" + filename2;
+        
         Sound.load(fileUrl, function(s:Sound){
             sound = s;
+        });
+        Sound.load(fileUrl2, function(s:Sound){
+            sound2 = s;
         });
     }
 
