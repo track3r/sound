@@ -47,7 +47,7 @@ public final class FocusManager
     {
         DuellActivity activity = DuellActivity.getInstance();
 
-        if (activity != null)
+        if (activity != null && !globalFocusRequested)
         {
             AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
             audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC,

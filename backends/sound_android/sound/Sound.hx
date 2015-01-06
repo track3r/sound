@@ -24,8 +24,8 @@ class Sound
     "pauseSound", "()V");
     private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "setVolume", "(F)V");
-    private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "setLoop", "(Z)V");
+    private static var setLoopedNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setLooped", "(Z)V");
     private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "getDuration", "()F");
     private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
@@ -90,7 +90,7 @@ class Sound
         if (loop != value)
         {
             loop = value;
-            setLoopNative(javaSound, loop);
+            setLoopedNative(javaSound, loop);
         }
 
         return loop;
