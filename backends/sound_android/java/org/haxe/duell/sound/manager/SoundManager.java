@@ -21,9 +21,7 @@ import org.haxe.duell.sound.Sound;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.List;
 
 /**
  * @author jxav
@@ -252,11 +250,14 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
         try
         {
-            // load the file and set it as a data source in the player
             AssetFileDescriptor afd = assets.openFd(fileUrl);
 
-            soundLoadQueue.push(sound.getInternalKey());
-            loadedSounds.put(sound.getInternalKey(), sound);
+            // we need the sound load queue to get the exact unique key for the sound
+            soundLoadQueue.push(sound.getUniqueKey());
+            // the sound needs to be indexed by its unique key in order to be updated when it's loaded
+            loadedSounds.put(sound.getUniqueKey(), sound);
+
+            // load the file always with the same priority
             sfxPool.load(afd, 1);
 
             afd.close();
@@ -281,12 +282,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             // -1 means loop forever
             int stream = sfxPool.play(sound.getId(), sound.getVolume(), sound.getVolume(), 1, sound.isLooped() ? -1 : 0, 1.0f);
 
+            // if the stream is more than 0, it succeeded
             if (stream > 0)
             {
-                soundStreams.put(sound.getId(), stream);
-            } else {
-                // if stream is 0, it failed
-                soundStreams.delete(sound.getId());
+                soundStreams.put(stream, sound.getId());
             }
         }
     }
@@ -295,9 +294,9 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     {
         Log.d(TAG, "Stopping sound: " + sound.getId());
 
-        int stream = soundStreams.get(sound.getId(), -1);
+        int stream = findSoundInStreams(sound.getId());
 
-        if (stream != -1)
+        if (stream > 0)
         {
             sfxPool.stop(stream);
             soundStreams.delete(sound.getId());
@@ -306,8 +305,37 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     public void pauseSound(Sound sound)
     {
-        // TODO later sfxPool.pause(soundStreams.get(sound.getId()));
+        // TODO later
+        /*
+        int stream = findSoundInStreams(sound.getId());
+
+        if (stream > 0)
+        {
+            sfxPool.pause(stream);
+            // set stream state to paused
+        } */
     }
+
+    private int findSoundInStreams(int soundId)
+    {
+        int stream = 0;
+
+        for (int index = 0; index != soundStreams.size(); index++)
+        {
+            int currentStream = soundStreams.keyAt(index);
+            int currentSoundInStream = soundStreams.get(currentStream);
+
+            if (currentSoundInStream == soundId)
+            {
+                stream = currentStream;
+                break;
+            }
+        }
+
+        return stream;
+    }
+
+
 
 
 

@@ -23,8 +23,7 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
     private final HaxeObject haxeSound;
     private final String fileUrl;
-
-    private final int internalKey;
+    private final int uniqueKey;
 
     private int id;
     private float volume;
@@ -43,10 +42,11 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
     private Sound(final HaxeObject haxeSound, final String fileUrl)
     {
-        this.internalKey = ID_GENERATOR.getAndIncrement();
-
         this.haxeSound = haxeSound;
         this.fileUrl = fileUrl;
+
+        // the unique id has to be different for every sound, so a hash of file URL is not sufficient
+        uniqueKey = ID_GENERATOR.getAndIncrement();
 
         duration = -1;
         volume = 1.0f;
@@ -264,8 +264,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         return id;
     }
 
-    public int getInternalKey()
+    public int getUniqueKey()
     {
-        return internalKey;
+        return uniqueKey;
     }
 }
