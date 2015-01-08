@@ -80,7 +80,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             loadSfxPool();
-        } else
+        }
+        else
         {
             loadSfxPoolCompat();
         }
@@ -232,36 +233,38 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private boolean prepareSound(final Sound sound, final boolean shouldPlay)
     {
-        AssetManager assets = assetManager.get();
-
-        // if asset manager is null, we're in a VERY bad state
-        if (assets == null)
-        {
-            return false;
-        }
-
         String fileUrl = sound.getFileUrl();
-
-        // we're using the AssetManager, so we are automatically inside the path
-        if (fileUrl.startsWith("assets/"))
-        {
-            fileUrl = fileUrl.substring(7);
-        }
 
         try
         {
-            AssetFileDescriptor afd = assets.openFd(fileUrl);
+            if (sound.isFromAssets())
+            {
+                AssetManager assets = assetManager.get();
+
+                // if asset manager is null, we're in a VERY bad state
+                if (assets == null)
+                {
+                    return false;
+                }
+
+                AssetFileDescriptor afd = assets.openFd(fileUrl);
+
+                // load the file always with the same priority
+                sfxPool.load(afd, 1);
+
+                afd.close();
+            }
+            else
+            {
+                sfxPool.load(fileUrl, 1);
+            }
 
             // we need the sound load queue to get the exact unique key for the sound
             soundLoadQueue.push(sound.getUniqueKey());
             // the sound needs to be indexed by its unique key in order to be updated when it's loaded
             loadedSounds.put(sound.getUniqueKey(), sound);
-
-            // load the file always with the same priority
-            sfxPool.load(afd, 1);
-
-            afd.close();
-        } catch (IOException e)
+        }
+        catch (IOException e)
         {
             Log.e(TAG, e.getMessage());
             return false;
@@ -336,16 +339,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     }
 
 
-
-
-
-
-
-
-
-
-
-
     //
     // Player settings (TODO later)
     //
@@ -396,7 +389,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             replaceMusic(sound);
 
             prepareMusic(sound, false);
-        } catch (IOException e)
+        }
+        catch (IOException e)
         {
             Log.e(TAG, e.getMessage());
             return false;
@@ -421,7 +415,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     if (shouldPlay)
                     {
                         playMusic(sound);
-                    } else
+                    }
+                    else
                     {
                         sound.onSoundReady(sound, -1, getCurrentMusicDuration());
                     }

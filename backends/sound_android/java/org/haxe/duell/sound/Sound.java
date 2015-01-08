@@ -23,6 +23,7 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
     private final HaxeObject haxeSound;
     private final String fileUrl;
+    private final boolean fromAssets;
     private final int uniqueKey;
 
     private int id;
@@ -35,15 +36,16 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
 
     private boolean playAfterPreload;
 
-    public static Sound create(final HaxeObject haxeObject, final String fileUrl)
+    public static Sound create(final HaxeObject haxeObject, final String fileUrl, final boolean fromAssets)
     {
-        return new Sound(haxeObject, fileUrl);
+        return new Sound(haxeObject, fileUrl, fromAssets);
     }
 
-    private Sound(final HaxeObject haxeSound, final String fileUrl)
+    private Sound(final HaxeObject haxeSound, final String fileUrl, final boolean fromAssets)
     {
         this.haxeSound = haxeSound;
         this.fileUrl = fileUrl;
+        this.fromAssets = fromAssets;
 
         // the unique id has to be different for every sound, so a hash of file URL is not sufficient
         uniqueKey = ID_GENERATOR.getAndIncrement();
@@ -82,12 +84,12 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
             return;
         }
         /** TODO: music handling
-        else if (state != SoundState.IDLE)
-        {
-            return;
-        }
+         else if (state != SoundState.IDLE)
+         {
+         return;
+         }
 
-        state = SoundState.PLAYING; */
+         state = SoundState.PLAYING; */
         else if (state == SoundState.LOADING)
         {
             return;
@@ -116,8 +118,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         SoundManager.getSharedInstance().stopSound(this);
 
         /** TODO: music handling
-        // reset sound position
-        position = 0;
+         // reset sound position
+         position = 0;
          */
     }
 
@@ -126,10 +128,10 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         Log.d(TAG, "Sound paused");
 
         /** TODO: music handling
-        if (state != SoundState.PLAYING)
-        {
-            return;
-        } */
+         if (state != SoundState.PLAYING)
+         {
+         return;
+         } */
 
         if (state == SoundState.UNLOADED || state == SoundState.LOADING)
         {
@@ -141,8 +143,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         SoundManager.getSharedInstance().pauseSound(this);
 
         /** TODO: music handling
-        // cache current sound position on pause
-        position = SoundManager.getSharedInstance().getCurrentMusicPosition();
+         // cache current sound position on pause
+         position = SoundManager.getSharedInstance().getCurrentMusicPosition();
          */
     }
 
@@ -153,11 +155,11 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         this.volume = volume;
 
         /** TODO: music handling
-        if (state != SoundState.UNLOADED)
-        {
-            // update immediately if the sound is loaded
-            SoundManager.getSharedInstance().setMusicVolume(volume);
-        } */
+         if (state != SoundState.UNLOADED)
+         {
+         // update immediately if the sound is loaded
+         SoundManager.getSharedInstance().setMusicVolume(volume);
+         } */
     }
 
     public void setLooped(final boolean looped)
@@ -167,11 +169,11 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         this.looped = looped;
 
         /** TODO: music handling
-        if (state != SoundState.UNLOADED)
-        {
-            // update immediately if the sound is loaded
-            SoundManager.getSharedInstance().setMusicLoop(loop);
-        } */
+         if (state != SoundState.UNLOADED)
+         {
+         // update immediately if the sound is loaded
+         SoundManager.getSharedInstance().setMusicLoop(loop);
+         } */
     }
 
     public float getDuration()
@@ -179,11 +181,11 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         Log.d(TAG, "Get duration");
 
         /** TODO: music handling
-        if (duration == -1 && state != SoundState.UNLOADED)
-        {
-            // update the duration value, if it is still the default value
-            duration = SoundManager.getSharedInstance().getCurrentMusicDuration();
-        } */
+         if (duration == -1 && state != SoundState.UNLOADED)
+         {
+         // update the duration value, if it is still the default value
+         duration = SoundManager.getSharedInstance().getCurrentMusicDuration();
+         } */
 
         return duration;
     }
@@ -193,11 +195,11 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         Log.d(TAG, "Get position");
 
         /** TODO: music handling
-        if (state == SoundState.PLAYING)
-        {
-            // always cache the last position in case it changes state too quickly
-            position = SoundManager.getSharedInstance().getCurrentMusicPosition();
-        } */
+         if (state == SoundState.PLAYING)
+         {
+         // always cache the last position in case it changes state too quickly
+         position = SoundManager.getSharedInstance().getCurrentMusicPosition();
+         } */
 
         return position;
     }
@@ -267,5 +269,10 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     public int getUniqueKey()
     {
         return uniqueKey;
+    }
+
+    public boolean isFromAssets()
+    {
+        return fromAssets;
     }
 }

@@ -4,6 +4,7 @@
  */
 package sound;
 
+import filesystem.FileSystem;
 import hxjni.JNI;
 import msignal.Signal;
 
@@ -13,7 +14,7 @@ import msignal.Signal;
 class Sound
 {
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
-    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Sound;");
+    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;Z)Lorg/haxe/duell/sound/Sound;");
     private static var preloadSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "preloadSound", "(Z)V");
     private static var playSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
@@ -48,9 +49,28 @@ class Sound
         sound.preload();
     }
 
-    public function new(fileUrl: String)
+    private function new(fileUrl: String)
     {
-        javaSound = createNative(this, fileUrl);
+        var isFromAssets: Bool = false;
+
+        if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
+        {
+            isFromAssets = true;
+            fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
+
+            var pos: Int = 0;
+            while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
+            {
+                pos++;
+            }
+
+            fileUrl = fileUrl.substr(pos);
+        }
+
+        trace(fileUrl);
+        trace(isFromAssets);
+
+        javaSound = createNative(this, fileUrl, isFromAssets);
     }
 
     private function preload(): Void

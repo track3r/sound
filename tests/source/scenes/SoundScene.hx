@@ -5,6 +5,7 @@
  */
 package scenes;
 
+import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
 import game_engine.systems.RelationSystem;
 import game_engine.systems.Camera2DSystem;
@@ -17,39 +18,40 @@ import game_engine.core.Scene;
 
 import sound.Sound;
 import ash.core.Entity;
+
 class SoundScene extends Scene
 {
-    private static var ballTexture : Texture2D;
+    private static var ballTexture: Texture2D;
 
     ///playBtn Textures
-    private static var playBtnUpTexture : Texture2D;
-    private static var playBtnDownTexture : Texture2D;
-    private static var playBtnOverTexture : Texture2D;
+    private static var playBtnUpTexture: Texture2D;
+    private static var playBtnDownTexture: Texture2D;
+    private static var playBtnOverTexture: Texture2D;
 
     ///stopBtn Textures
-    private static var stopBtnUpTexture : Texture2D;
-    private static var stopBtnDownTexture : Texture2D;
-    private static var stopBtnOverTexture : Texture2D;
+    private static var stopBtnUpTexture: Texture2D;
+    private static var stopBtnDownTexture: Texture2D;
+    private static var stopBtnOverTexture: Texture2D;
 
     ///buttons
-    private static var playBtn : SimpleButton;
-    private static var stopBtn : SimpleButton;
+    private static var playBtn: SimpleButton;
+    private static var stopBtn: SimpleButton;
 
-    private static var playBtn2 : SimpleButton;
-    private static var stopBtn2 : SimpleButton;
+    private static var playBtn2: SimpleButton;
+    private static var stopBtn2: SimpleButton;
 
     //sound
     private var sound: Sound;
     private var sound2: Sound;
 
-    override public function initScene() : Void
+    override public function initScene(): Void
     {
         createTextures();
         createButtons();
         registerSystems();
     }
 
-    private function createTextures() : Void
+    private function createTextures(): Void
     {
         ///playBtn textures
         playBtnUpTexture = AssetManager.getTexture2D("playBtn_up.png");
@@ -62,7 +64,7 @@ class SoundScene extends Scene
         stopBtnOverTexture = AssetManager.getTexture2D("stopBtn_over.png");
     }
 
-    private function createButtons():Void
+    private function createButtons(): Void
     {
         playBtn = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
         playBtn.transform.x = 50;
@@ -77,14 +79,14 @@ class SoundScene extends Scene
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if(sound != null)
+            if (sound != null)
             {
                 sound.play();
             }
         });
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if(sound != null)
+            if (sound != null)
             {
                 sound.stop();
             }
@@ -103,21 +105,21 @@ class SoundScene extends Scene
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if(sound2 != null)
+            if (sound2 != null)
             {
                 sound2.play();
             }
         });
         stopBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if(sound2 != null)
+            if (sound2 != null)
             {
                 sound2.stop();
             }
         });
     }
 
-    private function registerSystems () : Void
+    private function registerSystems(): Void
     {
         // Object Creation Systems
         root.engine.addSystem(new SimpleButtonSystem(), 0);
@@ -129,7 +131,7 @@ class SoundScene extends Scene
         root.engine.addSystem(new Camera2DSystem(), 5);
     }
 
-    override public function sceneWillAppear() : Void
+    override public function sceneWillAppear(): Void
     {
         createButtons();
         loadSound("shotgun.mp3", "healicopter.mp3");
@@ -137,13 +139,15 @@ class SoundScene extends Scene
 
     private function loadSound(filename: String, filename2: String): Void
     {
-        var fileUrl: String = "assets/" + filename;
-        var fileUrl2: String = "assets/" + filename2;
+        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + filename;
+        var fileUrl2: String = FileSystem.instance().urlToStaticData() + "/" + filename2;
         
-        Sound.load(fileUrl, function(s:Sound){
+        Sound.load(fileUrl, function(s: Sound)
+        {
             sound = s;
         });
-        Sound.load(fileUrl2, function(s:Sound){
+        Sound.load(fileUrl2, function(s: Sound)
+        {
             sound2 = s;
         });
     }

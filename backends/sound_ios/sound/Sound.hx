@@ -33,7 +33,7 @@ class Sound
 
     public var onPlaybackComplete(default,null): Signal1<Sound>;
 
-    public function new()
+    private function new()
     {
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void

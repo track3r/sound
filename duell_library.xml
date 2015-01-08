@@ -2,7 +2,6 @@
 <library>
     <haxelib name="msignal"/>
     <haxelib name="format"/>
-    <dullib name="types"/>
 
     <include path="backends/sound_html5/duell_library.xml" if="html5" />
     <include path="backends/sound_android/duell_library.xml" if="android" />
