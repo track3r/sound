@@ -8,6 +8,9 @@ import msignal.Signal;
 import createjs.soundjs.Sound;
 import createjs.soundjs.WebAudioPlugin;
 import createjs.soundjs.HTMLAudioPlugin;
+
+import filesystem.FileSystem;
+
 import types.Data;
 ///=================///
 /// Sound html5     ///
@@ -21,6 +24,7 @@ class Sound
     public var position(get_position,null): Float;
     public var onPlaybackComplete(default,null): Signal1<Sound>;
     public var loadCallback: sound.Sound -> Void;
+
     public var fileUrl: String;
     private var soundInstance: createjs.soundjs.SoundInstance;
 
@@ -31,6 +35,26 @@ class Sound
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
+        if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
+        {
+            fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
+
+            var pos: Int = 0;
+            while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
+            {
+                pos++;
+            }
+
+            fileUrl = fileUrl.substr(pos);
+
+            fileUrl = "assets/" + fileUrl;
+        }
+        else if (fileUrl.indexOf(FileSystem.instance().urlToCachedData()) == 0 ||
+                 fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
+        {
+            throw "Sounds not supported outside the assets";
+        }
+
         if(!pluginsRegistered)
         {
             //fallback will be in the same order
@@ -41,6 +65,7 @@ class Sound
         var sound: Sound = new Sound();
         sound.loadCallback = loadCallback;
         sound.fileUrl = fileUrl;
+
         sound.loadSoundFile();
     }
     public function loadSoundFile(): Void

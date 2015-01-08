@@ -1,2 +1,4 @@
 *.iml
 Export
+backends/sound_ios/ndll
+backends/sound_ios/project/obj

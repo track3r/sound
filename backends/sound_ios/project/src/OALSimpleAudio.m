@@ -475,7 +475,7 @@ initFailed:
 - (ALBuffer*) internalPreloadEffect:(NSString*) filePath reduceToMono:(bool) reduceToMono
 {
 	ALBuffer* buffer;
-    NSString* cacheKey = [self cacheKeyForEffectPath:filePath];
+    NSString* cacheKey = filePath;
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		buffer = [preloadCache objectForKey:cacheKey];
@@ -483,7 +483,8 @@ initFailed:
 	if(nil == buffer)
 	{
 		OAL_LOG_DEBUG(@"Effect not in cache. Loading %@", filePath);
-		buffer = [[OpenALManager sharedInstance] bufferFromFile:filePath reduceToMono:reduceToMono];
+        
+		buffer = [[OpenALManager sharedInstance] bufferFromUrl:[NSURL URLWithString: filePath] reduceToMono:reduceToMono];
 		if(nil == buffer)
 		{
 			OAL_LOG_ERROR(@"Could not load effect %@", filePath);

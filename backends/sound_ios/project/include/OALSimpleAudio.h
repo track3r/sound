@@ -391,7 +391,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS_HEADER(OALSimpleAudio);
  *        (stereo samples don't support panning or positional audio).
  * @param completionBlock Executed when loading is complete.
  */
-- (BOOL) preloadEffect:(NSString*) filePath
+- (BOOL) preloadEffect:(NSURL*) url
 				  reduceToMono:(bool) reduceToMono
 	   completionBlock:(void(^)(ALBuffer *)) completionBlock;
 

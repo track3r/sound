@@ -41,6 +41,15 @@ class Sound
         var sound: Sound = new Sound();
         sound.loadCallback = loadCallback;
         sound.fileUrl = fileUrl;
+
+        var pos: Int = 0;
+        while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
+        {
+            pos++;
+        }
+
+        fileUrl = fileUrl.substr(pos);
+
         sound.loadSoundFile();
     }
     public function loadSoundFile(): Void

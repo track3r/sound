@@ -4,10 +4,14 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
+import filesystem.FileSystem;
 import msignal.Signal;
 import types.Data;
 import flash.media.Sound;
 import flash.media.SoundChannel;
+
+import filesystem.FileSystem;
+
 ///=================///
 /// Sound flash     ///
 ///                 ///
@@ -22,22 +26,32 @@ class Sound
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
 
+    private var fileData: Data = null;
     private var flashSound: flash.media.Sound;
     private var flashSoundChannel: SoundChannel;
     private function new()
     {
         
     }
+
+    @:access(filesystem.FileSystem)
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
+        var fileData = FileSystem.instance().getData(fileUrl);
+
+        if (fileData == null)
+            throw "sound does not exist: " + fileUrl;
+
         var sound: Sound = new Sound();
         sound.loadCallback = loadCallback;
         sound.fileUrl = fileUrl;
+        sound.fileData = fileData;
         sound.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
         flashSound = new flash.media.Sound();
+        /*
         flashSound.addEventListener(flash.events.Event.COMPLETE, function(event: flash.events.Event)
         {
             if(this.loadCallback != null)
@@ -47,6 +61,13 @@ class Sound
         });
 
         flashSound.load(new flash.net.URLRequest(fileUrl));
+        */
+        flashSound.loadCompressedDataFromByteArray(fileData.byteArray, fileData.byteArray.length);
+
+        if (this.loadCallback != null)
+        {
+            this.loadCallback(this);
+        }
     }
 
     public function play(): Void
