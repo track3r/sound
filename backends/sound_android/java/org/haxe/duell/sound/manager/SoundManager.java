@@ -302,7 +302,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         if (stream > 0)
         {
             sfxPool.stop(stream);
-            soundStreams.delete(sound.getId());
+            // no point in deleting the stream, just set the sound with an invalid ID
+            soundStreams.put(stream, -1);
         }
     }
 
