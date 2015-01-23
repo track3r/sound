@@ -33,12 +33,19 @@ class SoundScene extends Scene
     private static var stopBtnDownTexture: Texture2D;
     private static var stopBtnOverTexture: Texture2D;
 
+    ///pauseBtn Textures
+    private static var pauseBtnUpTexture: Texture2D;
+    private static var pauseBtnDownTexture: Texture2D;
+    private static var pauseBtnOverTexture: Texture2D;
+
     ///buttons
     private static var playBtn: SimpleButton;
     private static var stopBtn: SimpleButton;
+    private static var pauseBtn: SimpleButton;
 
     private static var playBtn2: SimpleButton;
     private static var stopBtn2: SimpleButton;
+    private static var pauseBtn2: SimpleButton;
 
     //sound
     private var sound: Sound;
@@ -58,10 +65,16 @@ class SoundScene extends Scene
         playBtnDownTexture = AssetManager.getTexture2D("playBtn_down.png");
         playBtnOverTexture = AssetManager.getTexture2D("playBtn_over.png");
 
-        ///playBtn textures
+        ///stopBtn textures
         stopBtnUpTexture = AssetManager.getTexture2D("stopBtn_up.png");
         stopBtnDownTexture = AssetManager.getTexture2D("stopBtn_down.png");
         stopBtnOverTexture = AssetManager.getTexture2D("stopBtn_over.png");
+
+
+        ///pauseBtn textures
+        pauseBtnUpTexture = AssetManager.getTexture2D("pauseBtn_up.png");
+        pauseBtnDownTexture = AssetManager.getTexture2D("pauseBtn_down.png");
+        pauseBtnOverTexture = AssetManager.getTexture2D("pauseBtn_over.png");
     }
 
     private function createButtons(): Void
@@ -71,11 +84,16 @@ class SoundScene extends Scene
         playBtn.transform.y = 50;
 
         stopBtn = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
-        stopBtn.transform.x = 250;
+        stopBtn.transform.x = 355;
         stopBtn.transform.y = 50;
+
+        pauseBtn = new SimpleButton(pauseBtnUpTexture, pauseBtnOverTexture, pauseBtnDownTexture);
+        pauseBtn.transform.x = 255;
+        pauseBtn.transform.y = 40;
 
         root.addChild(playBtn);
         root.addChild(stopBtn);
+        root.addChild(pauseBtn);
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
@@ -91,17 +109,29 @@ class SoundScene extends Scene
                 sound.stop();
             }
         });
+        pauseBtn.settings.onButtonUp.add(function(btn: Entity)
+        {
+            if (sound != null)
+            {
+                sound.pause();
+            }
+        });
 
         playBtn2 = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
         playBtn2.transform.x = 50;
         playBtn2.transform.y = 200;
 
         stopBtn2 = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
-        stopBtn2.transform.x = 250;
+        stopBtn2.transform.x = 355;
         stopBtn2.transform.y = 200;
+
+        pauseBtn2 = new SimpleButton(pauseBtnUpTexture, pauseBtnOverTexture, pauseBtnDownTexture);
+        pauseBtn2.transform.x = 255;
+        pauseBtn2.transform.y = 190;
 
         root.addChild(playBtn2);
         root.addChild(stopBtn2);
+        root.addChild(pauseBtn2);
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
@@ -115,6 +145,13 @@ class SoundScene extends Scene
             if (sound2 != null)
             {
                 sound2.stop();
+            }
+        });
+        pauseBtn2.settings.onButtonUp.add(function(btn: Entity)
+        {
+            if (sound2 != null)
+            {
+                sound2.pause();
             }
         });
     }
