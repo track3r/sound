@@ -143,7 +143,6 @@ class Sound
             loopsCount = 0;
         }
 
-        trace("play " + currentHead,loopsCount);
         flashSoundChannel = flashSound.play(currentHead, loopsCount);
 
         addSoundCompleteListener();
