@@ -99,6 +99,14 @@ class SoundScene extends Scene
         {
             if (sound != null)
             {
+                //Test the volume change
+                trace("Volume is: " + sound.set_volume(0.10));
+
+                //Test of the loop function
+                sound.set_loop(true);
+
+                //Test of the get_length function
+                trace("Lenght of sound: " + sound.get_length());
                 sound.play();
             }
         });
@@ -106,7 +114,13 @@ class SoundScene extends Scene
         {
             if (sound != null)
             {
+                //Test of the get_postion function
+                trace("Position is: " + sound.get_position());
+
                 sound.stop();
+
+                //Test if stopping the sound send out a signal1 object
+                trace(sound.onPlaybackComplete);
             }
         });
         pauseBtn.settings.onButtonUp.add(function(btn: Entity)
