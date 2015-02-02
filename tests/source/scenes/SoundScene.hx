@@ -15,6 +15,8 @@ import game_engine.systems.ui.SimpleButtonSystem;
 import game_engine.core.SimpleButton;
 import renderer.texture.Texture2D;
 import game_engine.core.Scene;
+import game_engine.core.Sprite;
+import game_engine_extensions.dragging.components.DragComponent;
 
 import sound.Sound;
 import ash.core.Entity;
@@ -22,6 +24,7 @@ import ash.core.Entity;
 class SoundScene extends Scene
 {
     private static var ballTexture: Texture2D;
+    private static var voleumeButtonTexture: Texture2D;
 
     ///playBtn Textures
     private static var playBtnUpTexture: Texture2D;
@@ -75,6 +78,8 @@ class SoundScene extends Scene
         pauseBtnUpTexture = AssetManager.getTexture2D("pauseBtn_up.png");
         pauseBtnDownTexture = AssetManager.getTexture2D("pauseBtn_down.png");
         pauseBtnOverTexture = AssetManager.getTexture2D("pauseBtn_over.png");
+
+        voleumeButtonTexture = AssetManager.getTexture2D("blue.png");
     }
 
     private function createButtons(): Void
@@ -91,14 +96,34 @@ class SoundScene extends Scene
         pauseBtn.transform.x = 255;
         pauseBtn.transform.y = 40;
 
+        var volumeHandle: Sprite = new Sprite(voleumeButtonTexture);
+        volumeHandle.transform.x = 50;
+        volumeHandle.transform.y = 100;
+        var volumeDragComp: DragComponent = new DragComponent();
+        volumeHandle.add(volumeDragComp);
+
         root.addChild(playBtn);
         root.addChild(stopBtn);
         root.addChild(pauseBtn);
+        root.addChild(volumeHandle);
+
+        volumeDragComp.onDrag.add(function(deltaX: Float, deltaY: Float)
+        {
+
+        });
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
             if (sound != null)
             {
+                //Test the volume change
+                trace("Volume is: " + sound.set_volume(0.10));
+
+                //Test of the loop function
+                sound.set_loop(true);
+
+                //Test of the get_length function
+                trace("Lenght of sound: " + sound.get_length());
                 sound.play();
             }
         });
@@ -106,7 +131,13 @@ class SoundScene extends Scene
         {
             if (sound != null)
             {
+                //Test of the get_postion function
+                trace("Position is: " + sound.get_position());
+
                 sound.stop();
+
+                //Test if stopping the sound send out a signal1 object
+                trace(sound.onPlaybackComplete);
             }
         });
         pauseBtn.settings.onButtonUp.add(function(btn: Entity)
