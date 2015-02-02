@@ -12,14 +12,16 @@ import game_engine.systems.Camera2DSystem;
 import game_engine.systems.Transform2DSystem;
 import game_engine.systems.Sprite2DSystem;
 import game_engine.systems.ui.SimpleButtonSystem;
+import game_engine_extensions.dragging.components.DragComponent;
+import game_engine_extensions.dragging.systems.DragSystem;
 import game_engine.core.SimpleButton;
 import renderer.texture.Texture2D;
 import game_engine.core.Scene;
 import game_engine.core.Sprite;
-import game_engine_extensions.dragging.components.DragComponent;
 
 import sound.Sound;
 import ash.core.Entity;
+import game_engine_extensions.dragging.components.DragComponent;
 
 class SoundScene extends Scene
 {
@@ -50,6 +52,8 @@ class SoundScene extends Scene
     private static var stopBtn2: SimpleButton;
     private static var pauseBtn2: SimpleButton;
 
+    private static var volumeBtn: SimpleButton;
+
     //sound
     private var sound: Sound;
     private var sound2: Sound;
@@ -57,7 +61,6 @@ class SoundScene extends Scene
     override public function initScene(): Void
     {
         createTextures();
-        createButtons();
         registerSystems();
     }
 
@@ -79,7 +82,7 @@ class SoundScene extends Scene
         pauseBtnDownTexture = AssetManager.getTexture2D("pauseBtn_down.png");
         pauseBtnOverTexture = AssetManager.getTexture2D("pauseBtn_over.png");
 
-        voleumeButtonTexture = AssetManager.getTexture2D("blue.png");
+        voleumeButtonTexture = AssetManager.getTexture2D("volume.png");
     }
 
     private function createButtons(): Void
@@ -96,21 +99,30 @@ class SoundScene extends Scene
         pauseBtn.transform.x = 255;
         pauseBtn.transform.y = 40;
 
-        var volumeHandle: Sprite = new Sprite(voleumeButtonTexture);
-        volumeHandle.transform.x = 50;
-        volumeHandle.transform.y = 100;
-        var volumeDragComp: DragComponent = new DragComponent();
-        volumeHandle.add(volumeDragComp);
+        volumeBtn = new SimpleButton(voleumeButtonTexture, voleumeButtonTexture, voleumeButtonTexture);
+        volumeBtn.transform.x = 550;
+        volumeBtn.transform.y = 150;
+
+        var dragComponent:DragComponent = new DragComponent();
+        volumeBtn.add(dragComponent);
 
         root.addChild(playBtn);
         root.addChild(stopBtn);
         root.addChild(pauseBtn);
-        root.addChild(volumeHandle);
+        root.addChild(volumeBtn);
 
-        volumeDragComp.onDrag.add(function(deltaX: Float, deltaY: Float)
+        dragComponent.onDrag.add(function(deltaX: Float, deltaY: Float)
         {
-
-        });
+            var newY = volumeBtn.transform.y + deltaY;
+            if(newY>100 && newY<200 )
+            {
+                var volumeIncrement = deltaY/100;
+                volumeBtn.transform.y = newY;
+                sound2.volume = sound2.volume+volumeIncrement;
+                trace("Volume is: " + sound2.volume);
+            }
+        }
+        );
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
@@ -127,6 +139,7 @@ class SoundScene extends Scene
                 sound.play();
             }
         });
+
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
             if (sound != null)
@@ -194,9 +207,10 @@ class SoundScene extends Scene
         root.engine.addSystem(new Sprite2DSystem(), 1);
 
         // Processing Systems
-        root.engine.addSystem(new Transform2DSystem(), 3);
-        root.engine.addSystem(new RelationSystem(), 4);
-        root.engine.addSystem(new Camera2DSystem(), 5);
+        root.engine.addSystem(new DragSystem(), 3);
+        root.engine.addSystem(new Transform2DSystem(), 4);
+        root.engine.addSystem(new RelationSystem(), 5);
+        root.engine.addSystem(new Camera2DSystem(), 6);
     }
 
     override public function sceneWillAppear(): Void
