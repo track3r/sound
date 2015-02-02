@@ -147,7 +147,7 @@ class Sound
 
         addSoundCompleteListener();
 
-        updateVolume(volume);
+        updateVolume();
     }
 
     private function stopSound():Void
@@ -177,14 +177,16 @@ class Sound
         currentHead = value;
     }
 
-    private function updateVolume(value:Float):Void
+    private function updateVolume():Void
     {
         if(flashSoundChannel==null)
         {
             return;
         }
 
-        flashSoundChannel.soundTransform.volume = value;
+        var soundTransform = flashSoundChannel.soundTransform;
+        soundTransform.volume = volume;
+        flashSoundChannel.soundTransform = soundTransform;
     }
 
     /**
@@ -235,7 +237,7 @@ class Sound
     */
     public function set_volume(value: Float): Float
     {
-        updateVolume(value);
+        updateVolume();
         volume = value;
         return volume;
     }
