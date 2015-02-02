@@ -99,30 +99,9 @@ class SoundScene extends Scene
         pauseBtn.transform.x = 255;
         pauseBtn.transform.y = 40;
 
-        volumeBtn = new SimpleButton(voleumeButtonTexture, voleumeButtonTexture, voleumeButtonTexture);
-        volumeBtn.transform.x = 550;
-        volumeBtn.transform.y = 150;
-
-        var dragComponent:DragComponent = new DragComponent();
-        volumeBtn.add(dragComponent);
-
         root.addChild(playBtn);
         root.addChild(stopBtn);
         root.addChild(pauseBtn);
-        root.addChild(volumeBtn);
-
-        dragComponent.onDrag.add(function(deltaX: Float, deltaY: Float)
-        {
-            var newY = volumeBtn.transform.y + deltaY;
-            if(newY>100 && newY<200 )
-            {
-                var volumeIncrement = deltaY/100;
-                volumeBtn.transform.y = newY;
-                sound2.volume = sound2.volume+volumeIncrement;
-                trace("Volume is: " + sound2.volume);
-            }
-        }
-        );
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
@@ -196,6 +175,27 @@ class SoundScene extends Scene
             if (sound2 != null)
             {
                 sound2.pause();
+            }
+        });
+
+
+        volumeBtn = new SimpleButton(voleumeButtonTexture, voleumeButtonTexture, voleumeButtonTexture);
+        volumeBtn.transform.x = 600;
+        volumeBtn.transform.y = 150;
+        root.addChild(volumeBtn);
+
+        var dragComponent:DragComponent = new DragComponent();
+        volumeBtn.add(dragComponent);
+
+        dragComponent.onDrag.add(function(deltaX: Float, deltaY: Float)
+        {
+            var newY = volumeBtn.transform.y + deltaY;
+            if(newY>100 && newY<200 )
+            {
+                var volumeIncrement = deltaY/100;
+                volumeBtn.transform.y = newY;
+                sound2.volume = sound2.volume+volumeIncrement;
+                trace("Volume is: " + sound2.volume);
             }
         });
     }
