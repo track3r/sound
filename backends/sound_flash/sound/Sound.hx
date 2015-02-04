@@ -184,7 +184,7 @@ class Sound
             return;
         }
 
-        var soundTransform = flashSoundChannel.soundTransform;
+        var soundTransform:SoundTransform = flashSoundChannel.soundTransform;
         soundTransform.volume = volume;
         flashSoundChannel.soundTransform = soundTransform;
     }

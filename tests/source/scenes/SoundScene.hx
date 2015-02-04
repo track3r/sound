@@ -189,12 +189,12 @@ class SoundScene extends Scene
 
         dragComponent.onDrag.add(function(deltaX: Float, deltaY: Float)
         {
-            var newY = volumeBtn.transform.y + deltaY;
-            if(newY>100 && newY<200 )
+            var newY = Math.round(volumeBtn.transform.y + deltaY);
+            if(newY>99 && newY<201 )
             {
                 var volumeIncrement = deltaY/100;
                 volumeBtn.transform.y = newY;
-                sound2.volume = sound2.volume+volumeIncrement;
+                sound2.volume = sound2.volume + volumeIncrement;
                 trace("Volume is: " + sound2.volume);
             }
         });
