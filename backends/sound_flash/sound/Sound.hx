@@ -78,18 +78,6 @@ class Sound
         {
             this.loadCallback(this);
         }
-
-        /*
-        flashSound.addEventListener(flash.events.Event.COMPLETE, function(event: flash.events.Event)
-        {
-            if(this.loadCallback != null)
-            {
-                this.loadCallback(this);
-            }
-        });
-
-        flashSound.load(new flash.net.URLRequest(fileUrl));
-        */
     }
 
     public function play(): Void
@@ -237,8 +225,8 @@ class Sound
     */
     public function set_volume(value: Float): Float
     {
-        updateVolume();
         volume = value;
+        updateVolume();
         return volume;
     }
 
