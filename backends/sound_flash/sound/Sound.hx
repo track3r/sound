@@ -60,11 +60,11 @@ class Sound
         if (fileData == null)
             throw "sound does not exist: " + fileUrl;
 
-        var sound: Sound = new sound.Sound();
-        sound.loadCallback = loadCallback;
-        sound.fileUrl = fileUrl;
-        sound.fileData = fileData;
-        sound.loadSoundFile();
+        var soundObj: sound.Sound = new sound.Sound();
+        soundObj.loadCallback = loadCallback;
+        soundObj.fileUrl = fileUrl;
+        soundObj.fileData = fileData;
+        soundObj.loadSoundFile();
     }
 
     public function loadSoundFile(): Void
