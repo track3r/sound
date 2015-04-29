@@ -1,41 +1,30 @@
 /**
  * @author kgar
- * @date  23/12/14 
+ * @date  29/04/15 
  * Copyright (c) 2014 GameDuell GmbH
  */
-package sound;
-import msignal.Signal;
-import createjs.soundjs.Sound;
-import createjs.soundjs.WebAudioPlugin;
-import createjs.soundjs.HTMLAudioPlugin;
-
+package backends.sound_html5.sound;
 import filesystem.FileSystem;
-
-import types.Data;
-///=================///
-/// Sound html5     ///
-///                 ///
-///=================///
-class Sound
+import msignal.Signal.Signal1;
+class Music
 {
     public var volume(default,set_volume): Float;
     public var loop(default,set_loop): Int;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<Sound>;
-    public var loadCallback: sound.Sound -> Void;
+    public var onPlaybackComplete(default,null): Signal1<Music>;
+    public var loadCallback: sound.Music -> Void;
 
     public var fileUrl: String;
     private var soundInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
-    private static var pluginsRegistered: Bool = false; 
-
-    private function new()
+    private static var pluginsRegistered: Bool = false;
+    public function new()
     {
         isPaused = false;
         loop = 0;
     }
-    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
         {
@@ -51,7 +40,7 @@ class Sound
             fileUrl = "assets/" + fileUrl;
         }
         else if (fileUrl.indexOf(FileSystem.instance().urlToCachedData()) == 0 ||
-                 fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
+        fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
         {
             throw "Sounds not supported outside the assets";
         }
@@ -63,16 +52,16 @@ class Sound
             pluginsRegistered = true;
         }
 
-        var soundObj: Sound = new Sound();
-        soundObj.loadCallback = loadCallback;
-        soundObj.fileUrl = fileUrl;
-        soundObj.loadSoundFile();
+        var music: Music = new Music();
+        music.loadCallback = loadCallback;
+        music.fileUrl = fileUrl;
+        music.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
         createjs.soundjs.Sound.addEventListener("fileload", handleLoad);
         createjs.soundjs.Sound.registerSound(fileUrl,fileUrl);
-    }  
+    }
     private function handleLoad(event: Dynamic): Void
     {
         if(this.loadCallback != null)
@@ -93,13 +82,9 @@ class Sound
             return;
         }
         var loopsCount = 9999;
-        if(loop == 0)
+        if(!loop)
         {
             loopsCount = 0;
-        }
-        else if(loop > 0)
-        {
-            loopsCount = loop;
         }
         soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
     }
@@ -162,5 +147,4 @@ class Sound
             return 0.0;
         }
         return soundInstance.getPosition();
-    }
-}
+    }}

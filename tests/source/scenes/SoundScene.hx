@@ -112,7 +112,7 @@ class SoundScene extends Scene
                 trace("Volume is: " + sound.set_volume(0.10));
 
                 //Test of the loop function
-                sound.loop = -1;
+                sound.loop = 4;
 
                 //Test of the get_length function
                 trace("Lenght of sound: " + sound.get_length());
