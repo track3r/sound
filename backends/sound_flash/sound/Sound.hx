@@ -27,7 +27,7 @@ enum SoundState
 class Sound
 {
     public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Bool;
+    public var loop(default,set_loop): Int;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
     public var onPlaybackComplete(default,null): Signal1<sound.Sound>;
@@ -46,7 +46,7 @@ class Sound
         currentHead = 0.0;
         currentState = SoundState.STOPPED;
 
-        loop = false;
+        loop = 0;
         volume = 0.5;
 
         onPlaybackComplete = new Signal1<sound.Sound>();
@@ -115,7 +115,7 @@ class Sound
         }
     }
 
-    private function playSound():Void
+    private function playSound(): Void
     {
         removeSoundCompleteListener();
 
@@ -126,15 +126,16 @@ class Sound
         // not to loop the cropped sound over and over
         // on SoundComplete will set the loop back if needed
         var loopsCount = 9999;
-        if(currentHead>0 || !loop)
+        if(currentHead > 0 || loop == 0)
         {
             loopsCount = 0;
         }
-
-        flashSoundChannel = flashSound.play(currentHead, loopsCount);
-
+        else if(loop > 0)
+        {
+            loopsCount = loop;
+        }
         addSoundCompleteListener();
-
+        flashSoundChannel = flashSound.play(currentHead, loopsCount);
         updateVolume();
     }
 
@@ -144,7 +145,6 @@ class Sound
         {
             return;
         }
-
         updateCurrentHead(0.0);
         flashSoundChannel.stop();
     }
@@ -183,11 +183,11 @@ class Sound
     */
     private function onSoundComplete(event:Event):Void
     {
+        trace(loop);
         updateCurrentHead(0.0);
 
         onPlaybackComplete.dispatch(this);
-
-        if(loop)
+        if(loop != 0)
         {
             // if the sound should loop and it triggered the complete event
             // restart the loop
@@ -234,7 +234,7 @@ class Sound
     * If set to true the sound will loop as long as
     * stop() or pause is called
     */
-    public function set_loop(value: Bool): Bool
+    public function set_loop(value: Int): Int
     {
         loop = value;
         return loop;

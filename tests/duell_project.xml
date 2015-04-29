@@ -8,8 +8,8 @@
 	<source path="source" />
 
 	<duelllib name="sound" version="master"/>
-    <duelllib name="game_engine" version="4.0.0+"/>
-    <duelllib name="game_engine_extensions" version="master"/>
+    <duelllib name="game_engine" version="14.0.0+"/>
+    <duelllib name="game_engine_extensions" version="14.0.0+"/>
 
     <platform-config>
     </platform-config>

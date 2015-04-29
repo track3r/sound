@@ -22,8 +22,8 @@ class Music
     public var loop(default,set_loop): Bool;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<sound.Sound>;
-    public var loadCallback: sound.Sound -> Void;
+    public var onPlaybackComplete(default,null): Signal1<sound.Music>;
+    public var loadCallback: sound.Music -> Void;
     public var fileUrl: String;
 
     private var currentHead: Float;
@@ -40,11 +40,11 @@ class Music
         loop = false;
         volume = 0.5;
 
-        onPlaybackComplete = new Signal1<sound.Sound>();
+        onPlaybackComplete = new Signal1();
     }
 
     @:access(filesystem.FileSystem)
-    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         var fileData = FileSystem.instance().getData(fileUrl);
 

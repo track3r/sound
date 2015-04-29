@@ -5,6 +5,7 @@
  */
 package scenes;
 
+import sound.Music;
 import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
 import game_engine.systems.RelationSystem;
@@ -56,7 +57,7 @@ class SoundScene extends Scene
 
     //sound
     private var sound: Sound;
-    private var sound2: Sound;
+    private var music: Music;
 
     override public function initScene(): Void
     {
@@ -111,7 +112,7 @@ class SoundScene extends Scene
                 trace("Volume is: " + sound.set_volume(0.10));
 
                 //Test of the loop function
-                sound.set_loop(true);
+                sound.loop = -1;
 
                 //Test of the get_length function
                 trace("Lenght of sound: " + sound.get_length());
@@ -158,23 +159,24 @@ class SoundScene extends Scene
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound2 != null)
+            if (music != null)
             {
-                sound2.play();
+                music.loop = true;
+                music.play();
             }
         });
         stopBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound2 != null)
+            if (music != null)
             {
-                sound2.stop();
+                music.stop();
             }
         });
         pauseBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound2 != null)
+            if (music != null)
             {
-                sound2.pause();
+                music.pause();
             }
         });
 
@@ -194,8 +196,8 @@ class SoundScene extends Scene
             {
                 var volumeIncrement = deltaY/100;
                 volumeBtn.transform.y = newY;
-                sound2.volume = sound2.volume + volumeIncrement;
-                trace("Volume is: " + sound2.volume);
+                music.volume = music.volume + volumeIncrement;
+                trace("Volume is: " + music.volume);
             }
         });
     }
@@ -228,9 +230,9 @@ class SoundScene extends Scene
         {
             sound = s;
         });
-        Sound.load(fileUrl2, function(s: Sound)
+        Music.load(fileUrl2, function(m: Music)
         {
-            sound2 = s;
+            music = m;
         });
     }
 
