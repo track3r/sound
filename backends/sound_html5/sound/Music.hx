@@ -3,7 +3,7 @@
  * @date  29/04/15 
  * Copyright (c) 2014 GameDuell GmbH
  */
-package backends.sound_html5.sound;
+package sound;
 import filesystem.FileSystem;
 import msignal.Signal.Signal1;
 class Music
@@ -116,21 +116,21 @@ class Music
     }
 
     /// here you can do platform specific logic to set the sound volume
-    public function set_volume(value: Float): Float
+    private function set_volume(value: Float): Float
     {
         volume = value;
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
-    public function set_loop(value: Int): Int
+    private function set_loop(value: Int): Int
     {
         loop = value;
         return loop;
     }
 
     /// get the length of the current sound
-    public function get_length(): Float
+    private function get_length(): Float
     {
         if(soundInstance == null)
         {
@@ -140,7 +140,7 @@ class Music
     }
 
     /// get the current time of the current sound
-    public function get_position(): Float
+    private function get_position(): Float
     {
         if(soundInstance == null)
         {

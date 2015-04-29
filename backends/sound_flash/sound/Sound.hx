@@ -223,7 +223,7 @@ class Sound
     * Set the current sound volume
     * @param value Float range 0..1
     */
-    public function set_volume(value: Float): Float
+    private function set_volume(value: Float): Float
     {
         volume = value;
         updateVolume();
@@ -234,7 +234,7 @@ class Sound
     * If set to true the sound will loop as long as
     * stop() or pause is called
     */
-    public function set_loop(value: Int): Int
+    private function set_loop(value: Int): Int
     {
         loop = value;
         return loop;
@@ -243,7 +243,7 @@ class Sound
     /**
     * Get the current sound length (in milliseconds)
     */
-    public function get_length(): Float
+    private function get_length(): Float
     {
         if(flashSound == null)
         {
@@ -256,7 +256,7 @@ class Sound
     /**
     * Get the current sound delayed time (in milliseconds)
     */
-    public function get_position(): Float
+    private function get_position(): Float
     {
         if(flashSoundChannel == null)
         {

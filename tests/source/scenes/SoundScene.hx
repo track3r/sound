@@ -125,7 +125,7 @@ class SoundScene extends Scene
             if (sound != null)
             {
                 //Test of the get_postion function
-                trace("Position is: " + sound.get_position());
+                trace("Position is: " + sound.position);
 
                 sound.stop();
 
