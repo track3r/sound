@@ -1,3 +1,7 @@
+//
+//  Created by Khaled Garbaya a long time ago.
+//  Copyright (c) 2014 GameDuell GmbH. All rights reserved.
+//
 #ifndef STATIC_LINK
 #define IMPLEMENT_API
 #endif
@@ -8,6 +12,7 @@
 value *__soundLoadComplete = NULL;
 value *__currentSound = NULL;
 NSString *filePath;
+
 //convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
 {
@@ -60,6 +65,7 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
 {
     return (id<ALSoundSource>)val_data(soundChannel);
 }
+
 ///-------------------------------------------------------------------
 static value soundios_registerCallback(value callback)
 {
@@ -78,11 +84,6 @@ static value soundios_intialize(value soundPath, value currentSound)
 {
     filePath = valueToNSString(soundPath);
 
-    [OALSimpleAudio sharedInstance].allowIpod = NO;
-    
-    // Mute all audio if the silent switch is turned on.
-    [OALSimpleAudio sharedInstance].honorSilentSwitch = YES;
-    
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
     [[OALSimpleAudio sharedInstance] preloadBg:filePath];
@@ -94,14 +95,40 @@ static value soundios_intialize(value soundPath, value currentSound)
 }
 DEFINE_PRIM(soundios_intialize,2);
 ///--------------------------------------------------------------------
+static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
+{
+    bool _allowIpod = val_bool(allowIpod);
+    bool _honorSilentSwitch = val_bool(honorSilentSwitch);
+
+    /// Do we want to keep the ipod music running or not?
+    if(_allowIpod)
+    {
+        [OALAudioSession sharedInstance].allowIpod = YES;
+    }
+    else
+    {
+         [OALAudioSession sharedInstance].allowIpod = NO;
+    }
+
+     /// Mute all audio if the silent switch is turned on.
+    if(_honorSilentSwitch)
+    {
+        [OALAudioSession sharedInstance].honorSilentSwitch = YES;
+    }
+    else
+    {
+        [OALAudioSession sharedInstance].honorSilentSwitch = NO;
+    }
+
+    // Deal with interruptions for me!
+    [OALAudioSession sharedInstance].handleInterruptions = YES;
+
+}
+DEFINE_PRIM(soundios_setDeviceConfig,2);
+///--------------------------------------------------------------------
 static value musicos_intialize(value soundPath, value currentMusic)
 {
     filePath = valueToNSString(soundPath);
-
-    [OALSimpleAudio sharedInstance].allowIpod = NO;
-
-    // Mute all audio if the silent switch is turned on.
-    [OALSimpleAudio sharedInstance].honorSilentSwitch = YES;
 
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
