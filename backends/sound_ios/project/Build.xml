@@ -5,35 +5,37 @@
     <files id="src">
 
         <compilerflag value="-Iinclude"/>
+        <!-- dependencies -->
+        <file name="src/oal_lib/ALBuffer.m" />
+        <file name="src/oal_lib/ALSource.m" />
+        <file name="src/oal_lib/OALAction.m" />
+        <file name="src/oal_lib/OALAudioTracks.m" />
+        <file name="src/oal_lib/ALCaptureDevice.m" />
+        <file name="src/oal_lib/ALWrapper.m" />
+        <file name="src/oal_lib/OALActionManager.m" />
+        <file name="src/oal_lib/OALSimpleAudio.m" />
+        <file name="src/oal_lib/ALChannelSource.m" />
+        <file name="src/oal_lib/OALAudioActions.m" />
+        <file name="src/oal_lib/OALSuspendHandler.m" />
+        <file name="src/oal_lib/ALContext.m" />
+        <file name="src/oal_lib/OALAudioFile.m" />
+        <file name="src/oal_lib/OALTools.m" />
+        <file name="src/oal_lib/ALDevice.m" />
+        <file name="src/oal_lib/IOSVersion.m" />
+        <file name="src/oal_lib/OALAudioSession.m" />
+        <file name="src/oal_lib/OALUtilityActions.m" />
+        <file name="src/oal_lib/ALListener.m" />
+        <file name="src/oal_lib/NSMutableArray+WeakReferences.m" />
+        <file name="src/oal_lib/OALAudioTrack.m" />
+        <file name="src/oal_lib/OpenALManager.m" />
+        <file name="src/oal_lib/ALSoundSourcePool.m" />
+        <file name="src/oal_lib/NSMutableDictionary+WeakReferences.m" />
+        <file name="src/oal_lib/OALAudioTrackNotifications.m" />
+        <file name="src/oal_lib/mach_timing.c" />
 
-        <file name="src/ALBuffer.m" />                          
-        <file name="src/ALSource.m" />                           
-        <file name="src/OALAction.m" />                         
-        <file name="src/OALAudioTracks.m" />
-        <file name="src/ALCaptureDevice.m" />                    
-        <file name="src/ALWrapper.m" />                         
-        <file name="src/OALActionManager.m" />                 
-        <file name="src/OALSimpleAudio.m" />
-        <file name="src/ALChannelSource.m" />                   
-        <!-- <file name="src/GDOALSound.m" />                         -->
-        <file name="src/OALAudioActions.m" />                 
-        <file name="src/OALSuspendHandler.m" />
-        <file name="src/ALContext.m" />                         
-        <file name="src/GDSoundNativeExtension.mm" />           
-        <file name="src/OALAudioFile.m" />                      
-        <file name="src/OALTools.m" />
-        <file name="src/ALDevice.m" />                          
-        <file name="src/IOSVersion.m" />                        
-        <file name="src/OALAudioSession.m" />                  
-        <file name="src/OALUtilityActions.m" />
-        <file name="src/ALListener.m" />                        
-        <file name="src/NSMutableArray+WeakReferences.m" />     
-        <file name="src/OALAudioTrack.m" />                     
-        <file name="src/OpenALManager.m" />
-        <file name="src/ALSoundSourcePool.m" />                 
-        <file name="src/NSMutableDictionary+WeakReferences.m" /> 
-        <file name="src/OALAudioTrackNotifications.m" />       
-        <file name="src/mach_timing.c" />
+        <!-- Native Extension -->
+        <file name="src/GDSoundNativeExtension.mm" />
+
 
     </files>
 

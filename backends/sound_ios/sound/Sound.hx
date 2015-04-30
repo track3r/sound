@@ -14,7 +14,7 @@ import cpp.Lib;
 class Sound
 {
     public var volume(default, set_volume): Float;
-    public var loop(default, set_loop): Bool;
+    public var loop(default, set_loop): Int;
     public var length(get_length, null): Float;
     public var position(get_position, null): Float;
     public var loadCallback: sound.Sound -> Void;
@@ -35,12 +35,13 @@ class Sound
 
     private function new()
     {
+        loop = 0;
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
-        var sound: Sound = new Sound();
-        sound.loadCallback = loadCallback;
-        sound.fileUrl = fileUrl;
+        var soundObj: Sound = new Sound();
+        soundObj.loadCallback = loadCallback;
+        soundObj.fileUrl = fileUrl;
 
         var pos: Int = 0;
         while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
@@ -50,7 +51,7 @@ class Sound
 
         fileUrl = fileUrl.substr(pos);
 
-        sound.loadSoundFile();
+        soundObj.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
@@ -62,57 +63,72 @@ class Sound
         this.nativeSoundHandle = nativeSoundHandle;
         if(this.loadCallback != null)
         {
-            trace("Sound Loaded Callback");
             this.loadCallback(this);
         }
     }
     public function play(): Void
     {
-        nativeSoundChannel = playNativeFunc(nativeSoundHandle);
+        if(nativeSoundHandle != null)
+        {
+            nativeSoundChannel = playNativeFunc(nativeSoundHandle);
+        }
     }
 
     public function stop(): Void
     {
-        stopNativeFunc(nativeSoundChannel);
+        if(nativeSoundChannel != null)
+        {
+            stopNativeFunc(nativeSoundChannel);
+        }
     }
 
     public function pause(): Void
     {
-        pauseNativeFunc(nativeSoundChannel,true);
+        if(nativeSoundChannel != null)
+        {
+            pauseNativeFunc(nativeSoundChannel,true);
+        }
     }
 
     public function mute(): Void
     {
-        setMuteNativeFunc(nativeSoundChannel, true);
+        if(nativeSoundChannel != null)
+        {
+            setMuteNativeFunc(nativeSoundChannel, true);
+        }
     }
 
     /// here you can do platform specific logic to set the sound volume
-    public function set_volume(value: Float): Float
+    private function set_volume(value: Float): Float
     {
         volume = value;
-        setVolumeNativeFunc(nativeSoundChannel, volume);
+        if(nativeSoundChannel != null)
+        {
+            setVolumeNativeFunc(nativeSoundChannel, volume);
+        }
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
-    public function set_loop(value: Bool): Bool
+    private function set_loop(value: Int): Int
     {
         loop = value;
-        setLoopNativeFunc(nativeSoundChannel, loop);
+        if(nativeSoundChannel != null)
+        {
+            setLoopNativeFunc(nativeSoundChannel, loop);
+        }
         return loop;
     }
 
     /// get the length of the current sound
-    public function get_length(): Float
+    private function get_length(): Float
     {
-        //TODO: Impliment me
         return 0.0;
     }
 
     /// get the current time of the current sound
-    public function get_position(): Float
+    private function get_position(): Float
     {
-        //TODO: Impliment me
         return 0.0;
     }
 }

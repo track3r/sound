@@ -60,7 +60,7 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
 {
     return (id<ALSoundSource>)val_data(soundChannel);
 }
-///------------------------------------------------------------------------------------------------
+///-------------------------------------------------------------------
 static value soundios_registerCallback(value callback)
 {
     val_check_function(callback, 1); // Is Func ?
@@ -85,10 +85,30 @@ static value soundios_intialize(value soundPath, value currentSound)
     
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
-    [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
+    [[OALSimpleAudio sharedInstance] preloadBg:filePath];
 
     value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
     
+    val_call1(*__soundLoadComplete, hxSoundHandle);
+    return alloc_null();
+}
+DEFINE_PRIM(soundios_intialize,2);
+///--------------------------------------------------------------------
+static value musicos_intialize(value soundPath, value currentMusic)
+{
+    filePath = valueToNSString(soundPath);
+
+    [OALSimpleAudio sharedInstance].allowIpod = NO;
+
+    // Mute all audio if the silent switch is turned on.
+    [OALSimpleAudio sharedInstance].honorSilentSwitch = YES;
+
+    // This loads the sound effects into memory so that
+    // there's no delay when we tell it to play them.
+    [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
+
+    value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
+
     val_call1(*__soundLoadComplete, hxSoundHandle);
     return alloc_null();
 }
@@ -101,6 +121,14 @@ static value soundios_play(value filePath)
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
 DEFINE_PRIM(soundios_play,1);
+///--------------------------------------------------------------------
+static value musicios_play(value filePath)
+{
+    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance] playBg:(NSString*)val_data(filePath)];
+
+    return createHaxePointerForSoundChannelHandle(soundSrc);
+}
+DEFINE_PRIM(musicios_play,1);
 ///--------------------------------------------------------------------
 static value soundios_stop(value soundSrc)
 {
