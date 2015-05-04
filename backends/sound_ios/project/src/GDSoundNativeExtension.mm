@@ -9,11 +9,16 @@
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
 
+/// sound Effects
 value *__soundLoadComplete = NULL;
 value *__currentSound = NULL;
 NSString *filePath;
 
-//convert value String coming from haxe to NSString
+/// Background Music
+OALAudioTrack* musicTrack;
+value *__musicLoadComplete = NULL;
+
+/// convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
 {
     const char *aHaxeChars = val_get_string(aHaxeString);
@@ -66,6 +71,11 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
     return (id<ALSoundSource>)val_data(soundChannel);
 }
 
+//====================================================================
+//
+// Sound Effects
+//====================================================================
+
 ///-------------------------------------------------------------------
 static value soundios_registerCallback(value callback)
 {
@@ -86,7 +96,7 @@ static value soundios_intialize(value soundPath, value currentSound)
 
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
-    [[OALSimpleAudio sharedInstance] preloadBg:filePath];
+    [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
 
     value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
     
@@ -125,21 +135,7 @@ static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
 
 }
 DEFINE_PRIM(soundios_setDeviceConfig,2);
-///--------------------------------------------------------------------
-static value musicos_intialize(value soundPath, value currentMusic)
-{
-    filePath = valueToNSString(soundPath);
 
-    // This loads the sound effects into memory so that
-    // there's no delay when we tell it to play them.
-    [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
-
-    value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
-
-    val_call1(*__soundLoadComplete, hxSoundHandle);
-    return alloc_null();
-}
-DEFINE_PRIM(soundios_intialize,2);
 ///--------------------------------------------------------------------
 static value soundios_play(value filePath)
 {
@@ -148,6 +144,7 @@ static value soundios_play(value filePath)
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
 DEFINE_PRIM(soundios_play,1);
+
 ///--------------------------------------------------------------------
 static value musicios_play(value filePath)
 {
@@ -156,6 +153,7 @@ static value musicios_play(value filePath)
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
 DEFINE_PRIM(musicios_play,1);
+
 ///--------------------------------------------------------------------
 static value soundios_stop(value soundSrc)
 {
@@ -166,10 +164,10 @@ static value soundios_stop(value soundSrc)
     return alloc_null();
 }
 DEFINE_PRIM(soundios_stop,1);
+
 ///--------------------------------------------------------------------
 static value soundios_pause(value soundSrc, value pause)
 {
-    [OALSimpleAudio sharedInstance].paused = ![OALSimpleAudio sharedInstance].paused;
     if (soundSrc != alloc_null())
     {
         getSoundChannelFromHaxePointer(soundSrc).paused = val_bool(pause);
@@ -178,25 +176,113 @@ static value soundios_pause(value soundSrc, value pause)
     return alloc_null();
 }
 DEFINE_PRIM(soundios_pause,2);
+
 ///--------------------------------------------------------------------
 static value soundios_setLoop(value filePath, value loop)
 {
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setLoop,2);
+
 ///--------------------------------------------------------------------
 static value soundios_setVolume(value filePath, value volume)
 {
+    getSoundChannelFromHaxePointer(soundSrc).volume = val_float(volume);
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setVolume,2);
+
 ///--------------------------------------------------------------------
 static value soundios_setMute(value filePath, value mute)
 {
+    getSoundChannelFromHaxePointer(soundSrc).muted = val_bool(pause);
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setMute,2);
+
+//====================================================================
+//
+// Background Music
+//====================================================================
+
+static value musicios_initialize(value filePath)
+{
+    /// convert to NString
+    NSString* musicPath = valueToNSString(filePath);
+
+    /// preload the music file
+    [musicTrack preloadFile:musicPath];
+
+    /// music is preloaded and initialized
+    val_call0(*__musicLoadComplete);
+
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_initialize,1);
+
 ///--------------------------------------------------------------------
+
+static value musicios_registerCallback(value callback)
+{
+    val_check_function(callback, 0); // Is Func ?
+
+    if(__musicLoadComplete == NULL)
+    {
+        __musicLoadComplete = alloc_root();
+    }
+    *__musicLoadComplete = callback;
+    return alloc_null();
+}
+DEFINE_PRIM (musicios_registerCallback, 1);
+///--------------------------------------------------------------------
+
+///--------------------------------------------------------------------
+static value musicios_play(value filePath, value loopsCount)
+{
+    /// convert to NString
+    NSString* musicPath = valueToNSString(filePath);
+    [musicTrack playFile:musicPath loops:loopsCount];
+}
+DEFINE_PRIM(musicios_play,2);
+
+///--------------------------------------------------------------------
+static value musicios_stop(value soundSrc)
+{
+    [musicTrack stop];
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_stop,1);
+
+///--------------------------------------------------------------------
+static value musicios_pause(value pause)
+{
+    musicTrack.paused = val_bool(pause);
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_pause,1);
+
+///--------------------------------------------------------------------
+static value musicios_setLoop(value loop)
+{
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_setLoop,1);
+
+///--------------------------------------------------------------------
+static value musicios_setVolume(value volume)
+{
+    musicTrack.volume = val_float(volume);
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_setVolume,1);
+
+///--------------------------------------------------------------------
+static value musicios_setMute(value mute)
+{
+    musicTrack.muted = val_bool(mute);
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_setMute,2);
 
 
 extern "C" int soundios_register_prims () { return 0; }
