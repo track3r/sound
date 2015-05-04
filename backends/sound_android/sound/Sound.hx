@@ -25,8 +25,8 @@ class Sound
     "pauseSound", "()V");
     private static var setVolumeNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "setVolume", "(F)V");
-    private static var setLoopedNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "setLooped", "(Z)V");
+    private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
+    "setLoop", "(I)V");
     private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "getDuration", "()F");
     private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
@@ -37,7 +37,7 @@ class Sound
     public var loadCallback: Sound -> Void;
 
     public var volume(default, set): Float;
-    public var loop(default, set): Bool;
+    public var loop(default, set): Int;
     public var length(get, never): Float;
     public var position(get, never): Float;
     public var onPlaybackComplete(default, null): Signal1<Sound>;
@@ -67,10 +67,10 @@ class Sound
             fileUrl = fileUrl.substr(pos);
         }
 
-        trace(fileUrl);
-        trace(isFromAssets);
-
         javaSound = createNative(this, fileUrl, isFromAssets);
+
+        volume = 1.0;
+        loop = 0;
     }
 
     private function preload(): Void
@@ -105,12 +105,15 @@ class Sound
         return volume;
     }
 
-    public function set_loop(value: Bool): Bool
+    public function set_loop(value: Int): Int
     {
-        if (loop != value)
+        // if it is -1, it is set as infinite loop. any other value will be clamped between 0 and the given repeat value
+        var localValue: Int = value == -1 ? -1 : Std.int(Math.max(0.0, value));
+
+        if (loop != localValue)
         {
-            loop = value;
-            setLoopedNative(javaSound, loop);
+            loop = localValue;
+            setLoopNative(javaSound, loop);
         }
 
         return loop;

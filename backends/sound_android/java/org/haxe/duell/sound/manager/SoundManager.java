@@ -16,6 +16,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import org.haxe.duell.DuellActivity;
+import org.haxe.duell.sound.Music;
 import org.haxe.duell.sound.Sound;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     private MediaPlayerState playerState;
     private MediaPlayer player;
     private float playerVolume;
-    private Sound lastMusic;
+    private Music lastMusic;
 
     private SoundPool sfxPool;
     private final SparseIntArray soundStreams;
@@ -98,7 +99,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     Sound sound = loadedSounds.get(soundKey);
 
                     // duration unknown
-                    sound.onSoundReady(sound, sampleId, 0);
+                    sound.onSoundReady(sampleId, 0);
                 }
             }
         });
@@ -283,7 +284,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             Log.d(TAG, "Playing sound: " + sound.getId());
 
             // -1 means loop forever
-            int stream = sfxPool.play(sound.getId(), sound.getVolume(), sound.getVolume(), 1, sound.isLooped() ? -1 : 0, 1.0f);
+            int stream = sfxPool.play(sound.getId(), sound.getVolume(), sound.getVolume(), 1, sound.getLoopCount(), 1.0f);
 
             // if the stream is more than 0, it succeeded
             if (stream > 0)
@@ -348,7 +349,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     // State handling
     //
 
-    public synchronized boolean initializeMusic(final Sound sound)
+    public synchronized boolean initializeMusic(final Music music)
     {
         AssetManager assets = assetManager.get();
 
@@ -371,7 +372,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             reset();
         }
 
-        String fileUrl = sound.getFileUrl();
+        String fileUrl = music.getFileUrl();
 
         // we're using the AssetManager, so we are automatically inside the path
         if (fileUrl.startsWith("assets/"))
@@ -387,9 +388,9 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             playerState = MediaPlayerState.INITIALIZED;
             afd.close();
 
-            replaceMusic(sound);
+            replaceMusic(music);
 
-            prepareMusic(sound, false);
+            prepareMusic(music, false);
         }
         catch (IOException e)
         {
@@ -400,7 +401,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         return true;
     }
 
-    private void prepareMusic(final Sound sound, final boolean shouldPlay)
+    private void prepareMusic(final Music music, final boolean shouldPlay)
     {
         if (player != null)
         {
@@ -415,11 +416,11 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     // if it should play, do so immediately, otherwise notify the listeners
                     if (shouldPlay)
                     {
-                        playMusic(sound);
+                        playMusic(music);
                     }
                     else
                     {
-                        sound.onSoundReady(sound, -1, getCurrentMusicDuration());
+                        music.onSoundReady(-1, getCurrentMusicDuration());
                     }
                 }
             });
@@ -430,7 +431,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         }
     }
 
-    public void playMusic(final Sound sound)
+    public void playMusic(final Music music)
     {
         FocusManager.request(this);
 
@@ -440,7 +441,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             create();
         }
 
-        if (playerState == MediaPlayerState.IDLE || lastMusic != sound)
+        if (playerState == MediaPlayerState.IDLE || lastMusic != music)
         {
             // we are changing songs, if it is playing, stop the current song
             if (player.isPlaying())
@@ -450,7 +451,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
             // player is in an idle state, so we reset before initializing a sound
             reset();
-            initializeMusic(sound);
+            initializeMusic(music);
             return;
         }
 
@@ -459,7 +460,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             // if the current state means that we are not able to play (but not idle, then move it to stop and to
             // prepare, to be played when possible
             stopMusic();
-            prepareMusic(sound, true);
+            prepareMusic(music, true);
             return;
         }
 
@@ -476,7 +477,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
                 playerState = MediaPlayerState.PLAYBACK_COMPLETED;
 
-                sound.onSoundComplete(sound);
+                music.onSoundComplete();
             }
         });
     }
@@ -538,14 +539,14 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     // Helpers
     //
 
-    private void replaceMusic(final Sound sound)
+    private void replaceMusic(final Music music)
     {
         if (lastMusic != null)
         {
             lastMusic.unload();
         }
 
-        lastMusic = sound;
+        lastMusic = music;
     }
 
     private boolean isAbleToPlayMusic()

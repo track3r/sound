@@ -4,12 +4,10 @@
  */
 package org.haxe.duell.sound.listener;
 
-import org.haxe.duell.sound.Sound;
-
 /**
  * @author jxav
  */
 public interface OnSoundCompleteListener
 {
-    void onSoundComplete(Sound sound);
+    void onSoundComplete();
 }
