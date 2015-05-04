@@ -51,6 +51,8 @@ class Music
 
     private function new(fileUrl: String)
     {
+        trace("new music");
+
         var isFromAssets: Bool = false;
 
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
@@ -74,21 +76,29 @@ class Music
 
     private function preload(): Void
     {
+        trace("preload");
+
         preloadMusicNative(javaMusic, false);
     }
 
     public function play(): Void
     {
+        trace("play");
+
         playMusicNative(javaMusic);
     }
 
     public function stop(): Void
     {
+        trace("stop");
+
         stopMusicNative(javaMusic);
     }
 
     public function pause(): Void
     {
+        trace("Pause");
+
         pauseMusicNative(javaMusic);
     }
 
