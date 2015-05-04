@@ -127,7 +127,7 @@ static value soundios_registerCallback(value callback)
 }
 DEFINE_PRIM (soundios_registerCallback, 1);
 ///--------------------------------------------------------------------
-static value soundios_intialize(value soundPath, value currentSound)
+static value soundios_initialize(value soundPath, value currentSound)
 {
     filePath = valueToNSString(soundPath);
 
@@ -235,7 +235,7 @@ DEFINE_PRIM(soundios_setMute,2);
 
 static value musicios_initialize(value filePath)
 {
-    /// convert to NString
+    /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
     /// preload the music file

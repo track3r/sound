@@ -23,7 +23,7 @@ class Sound
     public var nativeSoundChannel: Dynamic;
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
-    private static var initializeNativeFunc = Lib.load("soundios","soundios_intialize",2);
+    private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
     private static var playNativeFunc = Lib.load("soundios","soundios_play",1);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
     private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",2);
