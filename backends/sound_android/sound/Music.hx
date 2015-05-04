@@ -99,7 +99,7 @@ class Music
 
     public function set_volume(value: Float): Float
     {
-        volume = Math.max(Math.min(value, 0.0), 1.0);
+        volume = Math.min(Math.max(value, 0.0), 1.0);
         setVolumeNative(javaMusic, volume);
         return volume;
     }
