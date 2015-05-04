@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
+#import "GDSoundNativeExtension.h"
 
 /// sound Effects
 value *__soundLoadComplete = NULL;
@@ -17,6 +18,42 @@ NSString *filePath;
 /// Background Music
 OALAudioTrack* musicTrack;
 value *__musicLoadComplete = NULL;
+
+/// AVAudioPlayer Delegate
+@implementation GDSoundNativeExtension
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag
+{
+    NSLog(@"audioPlayerDidFinishPlaying");
+}
+- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error
+{
+    NSLog(@"audioPlayerDecodeErrorDidOccur");
+}
+
+/// Deprecated in IOS8
+- (void)audioPlayerBeginInterruption:(AVAudioPlayer *)player
+{
+
+}
+- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player withOptions:(NSUInteger)flags
+{
+
+}
+- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player
+{
+
+}
+- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player withFlags:(NSUInteger)flags
+{
+
+}
+
+@end
+//====================================================================
+//
+// Utils
+//====================================================================
 
 /// convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
@@ -146,15 +183,6 @@ static value soundios_play(value filePath)
 DEFINE_PRIM(soundios_play,1);
 
 ///--------------------------------------------------------------------
-static value musicios_play(value filePath)
-{
-    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance] playBg:(NSString*)val_data(filePath)];
-
-    return createHaxePointerForSoundChannelHandle(soundSrc);
-}
-DEFINE_PRIM(musicios_play,1);
-
-///--------------------------------------------------------------------
 static value soundios_stop(value soundSrc)
 {
     if (soundSrc != alloc_null())
@@ -185,7 +213,7 @@ static value soundios_setLoop(value filePath, value loop)
 DEFINE_PRIM(soundios_setLoop,2);
 
 ///--------------------------------------------------------------------
-static value soundios_setVolume(value filePath, value volume)
+static value soundios_setVolume(value soundSrc, value volume)
 {
     getSoundChannelFromHaxePointer(soundSrc).volume = val_float(volume);
     return alloc_null();
@@ -193,9 +221,9 @@ static value soundios_setVolume(value filePath, value volume)
 DEFINE_PRIM(soundios_setVolume,2);
 
 ///--------------------------------------------------------------------
-static value soundios_setMute(value filePath, value mute)
+static value soundios_setMute(value soundSrc, value mute)
 {
-    getSoundChannelFromHaxePointer(soundSrc).muted = val_bool(pause);
+    getSoundChannelFromHaxePointer(soundSrc).muted = val_bool(mute);
     return alloc_null();
 }
 DEFINE_PRIM(soundios_setMute,2);
@@ -241,22 +269,25 @@ static value musicios_play(value filePath, value loopsCount)
 {
     /// convert to NString
     NSString* musicPath = valueToNSString(filePath);
-    [musicTrack playFile:musicPath loops:loopsCount];
+    int loops = (int)val_int(loopsCount);
+    musicTrack.delegate = [[GDSoundNativeExtension alloc] init];
+
+    [musicTrack playFile:musicPath loops:loops];
 }
 DEFINE_PRIM(musicios_play,2);
 
 ///--------------------------------------------------------------------
-static value musicios_stop(value soundSrc)
+static value musicios_stop()
 {
     [musicTrack stop];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_stop,1);
+DEFINE_PRIM(musicios_stop,0);
 
 ///--------------------------------------------------------------------
 static value musicios_pause(value pause)
 {
-    musicTrack.paused = val_bool(pause);
+    musicTrack.paused = (bool)val_bool(pause);
     return alloc_null();
 }
 DEFINE_PRIM(musicios_pause,1);
@@ -282,7 +313,6 @@ static value musicios_setMute(value mute)
     musicTrack.muted = val_bool(mute);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setMute,2);
-
+DEFINE_PRIM(musicios_setMute,1);
 
 extern "C" int soundios_register_prims () { return 0; }

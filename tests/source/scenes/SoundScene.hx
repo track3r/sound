@@ -109,13 +109,14 @@ class SoundScene extends Scene
             if (sound != null)
             {
                 //Test the volume change
-                trace("Volume is: " + sound.set_volume(0.10));
+                sound.volume = 0.10;
+                trace("Volume is: " + sound.volume);
 
                 //Test of the loop function
                 sound.loop = 4;
 
                 //Test of the get_length function
-                trace("Lenght of sound: " + sound.get_length());
+                trace("Lenght of sound: " + sound.length);
                 sound.play();
             }
         });
@@ -161,7 +162,7 @@ class SoundScene extends Scene
         {
             if (music != null)
             {
-                music.loop = true;
+                music.loop = -1;
                 music.play();
             }
         });

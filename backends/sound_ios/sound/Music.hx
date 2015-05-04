@@ -1,44 +1,46 @@
 /**
  * @author kgar
- * @date  29/04/15 
+ * @date  23/12/14 
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
-import cpp.Lib;
-import msignal.Signal.Signal1;
+import msignal.Signal;
 import types.Data;
+import cpp.Lib;
+///=================///
+/// Sound IOS       ///
+///                 ///
+///=================///
 class Music
 {
     public var volume(default, set_volume): Float;
-    public var loop(default, set_loop): Bool;
+    public var loop(default, set_loop): Int;
     public var length(get_length, null): Float;
     public var position(get_position, null): Float;
     public var loadCallback: sound.Music -> Void;
     public var fileUrl: String;
-    public var nativeMusicHandle: Dynamic;
-    public var nativeMusicChannel: Dynamic;
-
+    public var nativeSoundHandle: Dynamic;
+    public var nativeSoundChannel: Dynamic;
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","musicios_registerCallback",1);
-    private static var initializeNativeFunc = Lib.load("soundios","musicios_intialize",2);
-    private static var playNativeFunc = Lib.load("soundios","musicios_play",1);
-    private static var stopNativeFunc = Lib.load("soundios","musicios_stop",1);
-    private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",2);
-    private static var setLoopNativeFunc = Lib.load("soundios","musicios_setLoop",2);
-    private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",2);
-    private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",2);
+    private static var initializeNativeFunc = Lib.load("soundios","musicios_initialize",1);
+    private static var playNativeFunc = Lib.load("soundios","musicios_play",2);
+    private static var stopNativeFunc = Lib.load("soundios","musicios_stop",0);
+    private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",1);
+    private static var setLoopNativeFunc = Lib.load("soundios","musicios_setLoop",1);
+    private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",1);
+    private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",1);
 
     public var onPlaybackComplete(default,null): Signal1<Music>;
 
     private function new()
     {
-        loop = false;
+        loop = 0;
     }
-    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         var music: Music = new Music();
         music.loadCallback = loadCallback;
-        music.fileUrl = fileUrl;
         music.fileUrl = fileUrl;
 
         var pos: Int = 0;
@@ -54,11 +56,10 @@ class Music
     public function loadSoundFile(): Void
     {
         registerCallbackNativeFunc(onSoundLoadedCallback);
-        initializeNativeFunc(fileUrl,this);
+        initializeNativeFunc(fileUrl);
     }
-    private function onSoundLoadedCallback(nativeSoundHandle: Dynamic): Void
+    private function onSoundLoadedCallback(): Void
     {
-        this.nativeMusicHandle = nativeSoundHandle;
         if(this.loadCallback != null)
         {
             this.loadCallback(this);
@@ -66,48 +67,49 @@ class Music
     }
     public function play(): Void
     {
-        nativeMusicChannel = playNativeFunc(nativeMusicHandle);
+        playNativeFunc(fileUrl, loop);
     }
 
     public function stop(): Void
     {
-        stopNativeFunc(nativeMusicChannel);
+        stopNativeFunc();
     }
 
     public function pause(): Void
     {
-        pauseNativeFunc(nativeMusicChannel,true);
+        pauseNativeFunc(true);
     }
 
     public function mute(): Void
     {
-        setMuteNativeFunc(nativeMusicChannel, true);
+        setMuteNativeFunc(true);
     }
 
     /// here you can do platform specific logic to set the sound volume
-    public function set_volume(value: Float): Float
+    private function set_volume(value: Float): Float
     {
         volume = value;
-        setVolumeNativeFunc(nativeMusicChannel, volume);
+        setVolumeNativeFunc(volume);
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
-    public function set_loop(value: Bool): Bool
+    private function set_loop(value: Int): Int
     {
         loop = value;
-        setLoopNativeFunc(nativeMusicChannel, loop);
+        setLoopNativeFunc(loop);
         return loop;
     }
 
     /// get the length of the current sound
-    public function get_length(): Float
+    private function get_length(): Float
     {
         return 0.0;
     }
 
     /// get the current time of the current sound
-    public function get_position(): Float
+    private function get_position(): Float
     {
         return 0.0;
-    }}
+    }
+}
