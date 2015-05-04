@@ -403,6 +403,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private void prepareMusic(final Music music, final boolean shouldPlay)
     {
+
+        android.util.Log.d("TESTTEST", "preparing music");
+
+
         if (player != null)
         {
             // bind the prepare listener for THIS particular instance of sound
@@ -411,6 +415,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                 @Override
                 public void onPrepared(MediaPlayer mp)
                 {
+                    android.util.Log.d("TESTTEST", "on prepared");
+
                     playerState = MediaPlayerState.PREPARED;
 
                     // if it should play, do so immediately, otherwise notify the listeners
@@ -420,6 +426,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     }
                     else
                     {
+                        android.util.Log.d("TESTTEST", "sound ready");
                         music.onSoundReady(-1, getCurrentMusicDuration());
                     }
                 }
@@ -428,6 +435,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             // prepare the sound
             playerState = MediaPlayerState.PREPARING;
             player.prepareAsync();
+
+            android.util.Log.d("TESTTEST", "prepare async was called");
         }
     }
 

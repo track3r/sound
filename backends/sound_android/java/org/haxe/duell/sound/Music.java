@@ -80,17 +80,12 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
             preloadMusic(true);
             return;
         }
-        /** TODO: music handling
-         else if (state != SoundState.IDLE)
-         {
-         return;
-         }
-
-         state = SoundState.PLAYING; */
-        else if (state == SoundState.LOADING)
+        else if (state != SoundState.IDLE)
         {
             return;
         }
+
+        state = SoundState.PLAYING;
 
         SoundManager.getSharedInstance().playMusic(this);
     }
@@ -99,13 +94,7 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Music stopped");
 
-        /** TODO: music handling
-         if (state != SoundState.PLAYING)
-         {
-         return;
-         } */
-
-        if (state == SoundState.UNLOADED || state == SoundState.LOADING)
+        if (state != SoundState.PLAYING)
         {
             return;
         }
@@ -114,23 +103,15 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
         SoundManager.getSharedInstance().stopMusic();
 
-        /** TODO: music handling
-         // reset sound position
-         position = 0;
-         */
+        // reset sound position
+        position = 0;
     }
 
     public void pauseMusic()
     {
         Log.d(TAG, "Music paused");
 
-        /** TODO: music handling
-         if (state != SoundState.PLAYING)
-         {
-         return;
-         } */
-
-        if (state == SoundState.UNLOADED || state == SoundState.LOADING)
+        if (state != SoundState.PLAYING)
         {
             return;
         }
@@ -139,10 +120,8 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
         SoundManager.getSharedInstance().pauseMusic();
 
-        /** TODO: music handling
-         // cache current sound position on pause
-         position = SoundManager.getSharedInstance().getCurrentMusicPosition();
-         */
+        // cache current sound position on pause
+        position = SoundManager.getSharedInstance().getCurrentMusicPosition();
     }
 
     public void setVolume(final float volume)
@@ -151,12 +130,11 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
         this.volume = volume;
 
-        /** TODO: music handling
-         if (state != SoundState.UNLOADED)
-         {
-         // update immediately if the sound is loaded
-         SoundManager.getSharedInstance().setMusicVolume(volume);
-         } */
+        if (state != SoundState.UNLOADED)
+        {
+            // update immediately if the sound is loaded
+            SoundManager.getSharedInstance().setMusicVolume(volume);
+        }
     }
 
     public void setLooped(final boolean looped)
@@ -165,24 +143,22 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
         this.looped = looped;
 
-        /** TODO: music handling
-         if (state != SoundState.UNLOADED)
-         {
-         // update immediately if the sound is loaded
-         SoundManager.getSharedInstance().setMusicLoop(loop);
-         } */
+        if (state != SoundState.UNLOADED)
+        {
+            // update immediately if the sound is loaded
+            SoundManager.getSharedInstance().setMusicLoop(looped);
+        }
     }
 
     public float getDuration()
     {
         Log.d(TAG, "Get duration");
 
-        /** TODO: music handling
-         if (duration == -1 && state != SoundState.UNLOADED)
-         {
-         // update the duration value, if it is still the default value
-         duration = SoundManager.getSharedInstance().getCurrentMusicDuration();
-         } */
+        if (duration == -1 && state != SoundState.UNLOADED)
+        {
+            // update the duration value, if it is still the default value
+            duration = SoundManager.getSharedInstance().getCurrentMusicDuration();
+        }
 
         return duration;
     }
@@ -191,12 +167,11 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Get position");
 
-        /** TODO: music handling
-         if (state == SoundState.PLAYING)
-         {
-         // always cache the last position in case it changes state too quickly
-         position = SoundManager.getSharedInstance().getCurrentMusicPosition();
-         } */
+        if (state == SoundState.PLAYING)
+        {
+            // always cache the last position in case it changes state too quickly
+            position = SoundManager.getSharedInstance().getCurrentMusicPosition();
+        }
 
         return position;
     }
