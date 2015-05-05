@@ -14,6 +14,7 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
 import org.haxe.duell.DuellActivity;
 import org.haxe.duell.sound.Music;
@@ -43,6 +44,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private SoundPool sfxPool;
     private final SparseIntArray soundStreams;
+    private final SparseBooleanArray soundStreamsPaused;
     private final SparseArray<Sound> loadedSounds;
     private final Deque<Integer> soundLoadQueue;
 
@@ -62,6 +64,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     {
         assetManager = new WeakReference<AssetManager>(DuellActivity.getInstance().getAssets());
         soundStreams = new SparseIntArray();
+        soundStreamsPaused = new SparseBooleanArray();
         loadedSounds = new SparseArray<Sound>();
         soundLoadQueue = new ArrayDeque<Integer>();
 
@@ -290,6 +293,9 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             if (stream > 0)
             {
                 soundStreams.put(stream, sound.getId());
+
+                // stream is not paused
+                soundStreamsPaused.put(stream, false);
             }
         }
     }
@@ -298,32 +304,55 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     {
         Log.d(TAG, "Stopping sound: " + sound.getId());
 
-        int stream = findSoundInStreams(sound.getId());
+        int[] streams = findSoundInStreams(sound.getId());
 
-        if (stream > 0)
+        for (int stream : streams)
         {
-            sfxPool.stop(stream);
-            // no point in deleting the stream, just set the sound with an invalid ID
-            soundStreams.put(stream, -1);
+            if (stream > 0)
+            {
+                sfxPool.stop(stream);
+                // no point in deleting the stream, just set the sound with an invalid ID
+                soundStreams.put(stream, -1);
+                // stream is not paused
+                soundStreamsPaused.put(stream, false);
+            }
         }
     }
 
     public void pauseSound(Sound sound)
     {
-        // TODO later
-        /*
-        int stream = findSoundInStreams(sound.getId());
+        int[] streams = findSoundInStreams(sound.getId());
 
-        if (stream > 0)
+        for (int stream : streams)
         {
-            sfxPool.pause(stream);
-            // set stream state to paused
-        } */
+            if (stream > 0)
+            {
+                sfxPool.pause(stream);
+                // stream is now paused, don't update the soundStreams array
+                soundStreamsPaused.put(stream, true);
+            }
+        }
     }
 
-    private int findSoundInStreams(int soundId)
+    public void resumeSound(Sound sound)
     {
-        int stream = 0;
+        int[] streams = findSoundInStreams(sound.getId());
+
+        for (int stream : streams)
+        {
+            if (stream > 0 && soundStreamsPaused.get(stream, false))
+            {
+                // if the sound was found and the stream corresponding to the sound is paused, resume it
+                sfxPool.resume(stream);
+                // update the stream state back to unpaused (playing)
+                soundStreamsPaused.put(stream, false);
+            }
+        }
+    }
+
+    private int[] findSoundInStreams(int soundId)
+    {
+        int[] streams = new int[soundStreams.size()];
 
         for (int index = 0; index != soundStreams.size(); index++)
         {
@@ -332,12 +361,12 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
             if (currentSoundInStream == soundId)
             {
-                stream = currentStream;
-                break;
+                // the sound is currently playing in this stream
+                streams[index] = currentStream;
             }
         }
 
-        return stream;
+        return streams;
     }
 
 
@@ -384,7 +413,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         {
             // load the file and set it as a data source in the player
             AssetFileDescriptor afd = assets.openFd(fileUrl);
-            player.setDataSource(afd.getFileDescriptor());
+            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getDeclaredLength());
             playerState = MediaPlayerState.INITIALIZED;
             afd.close();
 
@@ -403,10 +432,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private void prepareMusic(final Music music, final boolean shouldPlay)
     {
-
-        android.util.Log.d("TESTTEST", "preparing music");
-
-
         if (player != null)
         {
             // bind the prepare listener for THIS particular instance of sound
@@ -415,8 +440,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                 @Override
                 public void onPrepared(MediaPlayer mp)
                 {
-                    android.util.Log.d("TESTTEST", "on prepared");
-
                     playerState = MediaPlayerState.PREPARED;
 
                     // if it should play, do so immediately, otherwise notify the listeners
@@ -426,7 +449,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     }
                     else
                     {
-                        android.util.Log.d("TESTTEST", "sound ready");
                         music.onSoundReady(-1, getCurrentMusicDuration());
                     }
                 }
@@ -435,8 +457,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             // prepare the sound
             playerState = MediaPlayerState.PREPARING;
             player.prepareAsync();
-
-            android.util.Log.d("TESTTEST", "prepare async was called");
         }
     }
 

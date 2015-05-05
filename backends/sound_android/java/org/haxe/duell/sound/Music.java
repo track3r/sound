@@ -80,7 +80,7 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
             preloadMusic(true);
             return;
         }
-        else if (state != SoundState.IDLE)
+        else if (state != SoundState.IDLE && state != SoundState.PAUSED)
         {
             return;
         }
@@ -94,7 +94,7 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Music stopped");
 
-        if (state != SoundState.PLAYING)
+        if (state != SoundState.PLAYING && state != SoundState.PAUSED)
         {
             return;
         }
@@ -116,7 +116,7 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
             return;
         }
 
-        state = SoundState.IDLE;
+        state = SoundState.PAUSED;
 
         SoundManager.getSharedInstance().pauseMusic();
 
@@ -203,8 +203,18 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     @Override
     public void onSoundComplete()
     {
-        position = (long) getDuration();
-        state = SoundState.IDLE;
+        Log.d(TAG, "Music complete!");
+
+        if (looped)
+        {
+            position = 0;
+            // state is unaffected
+        }
+        else
+        {
+            position = (long) getDuration();
+            state = SoundState.IDLE;
+        }
 
         haxeMusic.call0("onPlaybackCompleted");
     }

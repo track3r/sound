@@ -162,7 +162,7 @@ class SoundScene extends Scene
         {
             if (music != null)
             {
-                music.loop = -1;
+                music.loop = true;
                 music.play();
             }
         });
