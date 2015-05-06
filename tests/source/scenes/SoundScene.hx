@@ -162,7 +162,7 @@ class SoundScene extends Scene
         {
             if (music != null)
             {
-                music.loop = -1;
+                music.loop = true;
                 music.play();
             }
         });
@@ -219,7 +219,7 @@ class SoundScene extends Scene
     override public function sceneWillAppear(): Void
     {
         createButtons();
-        loadSound("shotgun.mp3", "healicopter.mp3");
+        loadSound("shotgun.mp3", "helicopter.mp3");
     }
 
     private function loadSound(filename: String, filename2: String): Void
