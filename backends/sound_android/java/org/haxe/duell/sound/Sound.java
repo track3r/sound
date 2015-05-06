@@ -75,17 +75,29 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Sound playing");
 
-        if (state == SoundState.UNLOADED)
+        switch (state)
         {
-            preloadSound(true);
-            return;
-        }
-        else if (state == SoundState.LOADING)
-        {
-            return;
+            case UNLOADED:
+                preloadSound(true);
+                // fall-through is intended to return
+
+            case LOADING:
+                return;
+
+            case PAUSED:
+                SoundManager.getSharedInstance().resumeSound(this);
+                break;
+
+            case IDLE:
+                SoundManager.getSharedInstance().playSound(this);
+                break;
+
+            default:
+                break;
         }
 
-        SoundManager.getSharedInstance().playSound(this);
+        // set it as idle to be sure, as there is no way to identify when it is playing or when it is actually idle
+        state = SoundState.IDLE;
     }
 
     public void stopSound()
@@ -100,18 +112,18 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         state = SoundState.IDLE;
 
         SoundManager.getSharedInstance().stopSound(this);
-            }
+    }
 
     public void pauseSound()
     {
         Log.d(TAG, "Sound paused");
 
-        if (state == SoundState.UNLOADED || state == SoundState.LOADING)
+        if (state != SoundState.IDLE)
         {
             return;
         }
 
-        state = SoundState.IDLE;
+        state = SoundState.PAUSED;
 
         SoundManager.getSharedInstance().pauseSound(this);
     }

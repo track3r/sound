@@ -12,5 +12,6 @@ public enum SoundState
     UNLOADED,
     LOADING,
     IDLE,
+    PAUSED,
     PLAYING,
 }
