@@ -27,7 +27,7 @@ enum SoundState
 class Sound
 {
     public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Int;
+    public var loop(default,set_loop): Bool;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
     public var loadCallback: sound.Sound -> Void;
@@ -45,7 +45,7 @@ class Sound
         currentHead = 0.0;
         currentState = SoundState.STOPPED;
 
-        loop = 0;
+        loop = false;
         volume = 0.5;
     }
 
@@ -123,13 +123,9 @@ class Sound
         // not to loop the cropped sound over and over
         // on SoundComplete will set the loop back if needed
         var loopsCount = 9999;
-        if(currentHead > 0 || loop == 0)
+        if(currentHead > 0 || !loop)
         {
             loopsCount = 0;
-        }
-        else if(loop > 0)
-        {
-            loopsCount = loop;
         }
         addSoundCompleteListener();
         flashSoundChannel = flashSound.play(currentHead, loopsCount);
@@ -180,10 +176,9 @@ class Sound
     */
     private function onSoundComplete(event:Event):Void
     {
-        trace(loop);
         updateCurrentHead(0.0);
 
-        if(loop != 0)
+        if(loop)
         {
             // if the sound should loop and it triggered the complete event
             // restart the loop
@@ -230,7 +225,7 @@ class Sound
     * If set to true the sound will loop as long as
     * stop() or pause is called
     */
-    private function set_loop(value: Int): Int
+    private function set_loop(value: Bool): Bool
     {
         loop = value;
         return loop;

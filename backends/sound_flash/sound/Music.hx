@@ -133,7 +133,7 @@ class Music
         // not to loop the cropped sound over and over
         // on SoundComplete will set the loop back if needed
         var loopsCount = 9999;
-        if(currentHead>0 || !loop)
+        if(currentHead > 0 || !loop)
         {
             loopsCount = 0;
         }

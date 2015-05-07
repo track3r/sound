@@ -18,7 +18,7 @@ import types.Data;
 class Sound
 {
     public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Int;
+    public var loop(default,set_loop): Bool;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
     public var loadCallback: sound.Sound -> Void;
@@ -31,7 +31,7 @@ class Sound
     private function new()
     {
         isPaused = false;
-        loop = 0;
+        loop = false;
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
@@ -91,14 +91,11 @@ class Sound
             return;
         }
         var loopsCount = 9999;
-        if(loop == 0)
+        if(!loop)
         {
             loopsCount = 0;
         }
-        else if(loop > 0)
-        {
-            loopsCount = loop;
-        }
+
         soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
     }
 
@@ -136,7 +133,7 @@ class Sound
     }
 
     /// here you can do platform specific logic to make the sound loop
-    private function set_loop(value: Int): Int
+    private function set_loop(value: Bool): Bool
     {
         loop = value;
         return loop;
