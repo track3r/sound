@@ -4,7 +4,6 @@
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
-import msignal.Signal;
 import createjs.soundjs.Sound;
 import createjs.soundjs.WebAudioPlugin;
 import createjs.soundjs.HTMLAudioPlugin;
@@ -22,7 +21,6 @@ class Sound
     public var loop(default,set_loop): Int;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<Sound>;
     public var loadCallback: sound.Sound -> Void;
 
     public var fileUrl: String;

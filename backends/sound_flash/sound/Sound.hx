@@ -30,7 +30,6 @@ class Sound
     public var loop(default,set_loop): Int;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<sound.Sound>;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
 
@@ -48,8 +47,6 @@ class Sound
 
         loop = 0;
         volume = 0.5;
-
-        onPlaybackComplete = new Signal1<sound.Sound>();
     }
 
     @:access(filesystem.FileSystem)
@@ -186,7 +183,6 @@ class Sound
         trace(loop);
         updateCurrentHead(0.0);
 
-        onPlaybackComplete.dispatch(this);
         if(loop != 0)
         {
             // if the sound should loop and it triggered the complete event

@@ -15,7 +15,6 @@ extern class Sound
     public var loadCallback: Sound -> Void;
     public var fileUrl: String;
 
-    public var onPlaybackComplete (default, null): Signal1;
     private function new(fileUrl: String);
     public function play(): Void;
     public function stop(): Void;
