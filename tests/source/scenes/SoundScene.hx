@@ -56,7 +56,7 @@ class SoundScene extends Scene
     private static var volumeBtn: SimpleButton;
 
     //sound
-    private var sound: Sound;
+    private var soundTrack: Sound;
     private var music: Music;
 
     override public function initScene(): Void
@@ -106,39 +106,24 @@ class SoundScene extends Scene
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound != null)
+            if (soundTrack != null)
             {
-                //Test the volume change
-                sound.volume = 0.10;
-                trace("Volume is: " + sound.volume);
-
-                //Test of the loop function
-                sound.loop = 4;
-
-                //Test of the get_length function
-                trace("Lenght of sound: " + sound.length);
-                sound.play();
+                soundTrack.play();
             }
         });
 
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound != null)
+            if (soundTrack != null)
             {
-                //Test of the get_postion function
-                trace("Position is: " + sound.position);
-
-                sound.stop();
-
-                //Test if stopping the sound send out a signal1 object
-                trace(sound.onPlaybackComplete);
+                soundTrack.stop();
             }
         });
         pauseBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (sound != null)
+            if (soundTrack != null)
             {
-                sound.pause();
+                soundTrack.pause();
             }
         });
 
@@ -227,14 +212,17 @@ class SoundScene extends Scene
         var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + filename;
         var fileUrl2: String = FileSystem.instance().urlToStaticData() + "/" + filename2;
         
-        Sound.load(fileUrl, function(s: Sound)
-        {
-            sound = s;
-        });
         Music.load(fileUrl2, function(m: Music)
         {
+            trace("Music Loaded");
             music = m;
         });
+        Sound.load(fileUrl, function(s: sound.Sound)
+        {
+            trace("Sound Loaded");
+            soundTrack = s;
+        });
+
     }
 
 }

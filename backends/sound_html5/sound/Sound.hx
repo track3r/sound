@@ -1,20 +1,11 @@
 /**
  * @author kgar
- * @date  23/12/14 
+ * @date  29/04/15 
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
-import createjs.soundjs.Sound;
-import createjs.soundjs.WebAudioPlugin;
-import createjs.soundjs.HTMLAudioPlugin;
-
 import filesystem.FileSystem;
-
-import types.Data;
-///=================///
-/// Sound html5     ///
-///                 ///
-///=================///
+import msignal.Signal.Signal1;
 class Sound
 {
     public var volume(default,set_volume): Float;
@@ -26,13 +17,15 @@ class Sound
     public var fileUrl: String;
     private var soundInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
-    private static var pluginsRegistered: Bool = false; 
+    private static var pluginsRegistered: Bool = false;
 
-    private function new()
+    public function new()
     {
         isPaused = false;
         loop = false;
+        volume = 1.0;
     }
+
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
@@ -49,42 +42,34 @@ class Sound
             fileUrl = "assets/" + fileUrl;
         }
         else if (fileUrl.indexOf(FileSystem.instance().urlToCachedData()) == 0 ||
-                 fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
+        fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
         {
             throw "Sounds not supported outside the assets";
         }
 
-        if(!pluginsRegistered)
-        {
-            //fallback will be in the same order
-            createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
-            pluginsRegistered = true;
-        }
-
-        var soundObj: Sound = new Sound();
-        soundObj.loadCallback = loadCallback;
-        soundObj.fileUrl = fileUrl;
-        soundObj.loadSoundFile();
+        var music: Sound = new sound.Sound();
+        music.loadCallback = loadCallback;
+        music.fileUrl = fileUrl;
+        music.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
-        createjs.soundjs.Sound.addEventListener("fileload", handleLoad);
-        createjs.soundjs.Sound.registerSound(fileUrl,fileUrl);
-    }  
-    private function handleLoad(event: Dynamic): Void
+        SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
+        SoundLoader.getInstance().loadSound(fileUrl);
+    }
+    private function soundHandleLoad(soundID: String): Void
     {
-        if(this.loadCallback != null)
+        if(soundID == this.fileUrl)
         {
-            this.loadCallback(this);
+            if(this.loadCallback != null)
+            {
+                this.loadCallback(this);
+            }
         }
     }
     public function play(): Void
     {
-        if(soundInstance == null)
-        {
-            return;
-        }
-        if(isPaused)
+        if(isPaused && soundInstance != null)
         {
             soundInstance.resume();
             isPaused = false;
@@ -95,7 +80,6 @@ class Sound
         {
             loopsCount = 0;
         }
-
         soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
     }
 
@@ -129,6 +113,10 @@ class Sound
     private function set_volume(value: Float): Float
     {
         volume = value;
+        if(soundInstance != null)
+        {
+            soundInstance.volume = volume;
+        }
         return volume;
     }
 
