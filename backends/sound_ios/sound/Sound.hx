@@ -21,6 +21,7 @@ class Sound
     public var fileUrl: String;
     public var nativeSoundHandle: Dynamic;
     public var nativeSoundChannel: Dynamic;
+
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
     private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
@@ -32,7 +33,8 @@ class Sound
     private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
 
     private static var getPositionNative = Lib.load("soundios","soundios_getPosition",1);
-    public var onPlaybackComplete(default,null): Signal1<Sound>;
+
+    private var isPaused: Bool = false;
 
     private function new()
     {
@@ -73,7 +75,15 @@ class Sound
     {
         if(nativeSoundHandle != null)
         {
-            nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume);
+            if(isPaused)
+            {
+                isPaused = false;
+                pauseNativeFunc(nativeSoundChannel,false);
+            }
+            else
+            {
+                nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume);
+            }
         }
     }
 
@@ -89,6 +99,7 @@ class Sound
     {
         if(nativeSoundChannel != null)
         {
+            isPaused = true;
             pauseNativeFunc(nativeSoundChannel,true);
         }
     }
