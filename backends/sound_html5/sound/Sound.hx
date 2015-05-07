@@ -47,10 +47,10 @@ class Sound
             throw "Sounds not supported outside the assets";
         }
 
-        var music: Sound = new sound.Sound();
-        music.loadCallback = loadCallback;
-        music.fileUrl = fileUrl;
-        music.loadSoundFile();
+        var soundObject: Sound = new sound.Sound();
+        soundObject.loadCallback = loadCallback;
+        soundObject.fileUrl = fileUrl;
+        soundObject.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
