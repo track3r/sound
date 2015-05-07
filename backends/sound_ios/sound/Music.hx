@@ -22,6 +22,8 @@ class Music
     public var fileUrl: String;
     public var nativeSoundHandle: Dynamic;
     public var nativeSoundChannel: Dynamic;
+    public var onPlaybackComplete(default,null): Signal1<Music>;
+
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","musicios_registerCallback",2);
     private static var initializeNativeFunc = Lib.load("soundios","musicios_initialize",1);
@@ -34,7 +36,8 @@ class Music
     private static var getLengthNative = Lib.load("soundios","musicios_getLength",0);
     private static var getPositionNative = Lib.load("soundios","musicios_getPosition",0);
 
-    public var onPlaybackComplete(default,null): Signal1<Music>;
+
+    private var isPaused:Bool = false;
 
     private function new()
     {
@@ -70,7 +73,17 @@ class Music
     }
     public function play(): Void
     {
-        playNativeFunc(fileUrl, loop);
+        if(isPaused)
+        {
+            /// if it is paused we just resume
+            isPaused = false;
+            pauseNativeFunc(false);
+        }
+        else
+        {
+            /// otherwise we play normally
+            playNativeFunc(fileUrl, loop);
+        }
     }
 
     public function stop(): Void
@@ -80,6 +93,7 @@ class Music
 
     public function pause(): Void
     {
+        isPaused = true;
         pauseNativeFunc(true);
     }
 
