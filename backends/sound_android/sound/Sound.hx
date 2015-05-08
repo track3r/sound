@@ -6,7 +6,6 @@ package sound;
 
 import filesystem.FileSystem;
 import hxjni.JNI;
-import msignal.Signal;
 
 /**
  * @author jxav
@@ -27,20 +26,13 @@ class Sound
     "setVolume", "(F)V");
     private static var setLoopNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
     "setLoop", "(I)V");
-    private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "getDuration", "()F");
-    private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
-    "getPosition", "()F");
 
     private var javaSound: Dynamic;
 
     public var loadCallback: Sound -> Void;
 
     public var volume(default, set): Float;
-    public var loop(default, set): Int;
-    public var length(get, never): Float;
-    public var position(get, never): Float;
-    public var onPlaybackComplete(default, null): Signal1<Sound>;
+    public var loop(default, set): Bool;
 
     public static function load(fileUrl: String, loadCallback: Sound -> Void): Void
     {
@@ -70,7 +62,7 @@ class Sound
         javaSound = createNative(this, fileUrl, isFromAssets);
 
         volume = 1.0;
-        loop = 0;
+        loop = false;
     }
 
     private function preload(): Void
@@ -95,7 +87,7 @@ class Sound
 
     public function mute(): Void
     {
-        this.volume = 0;
+        volume = 0.0;
     }
 
     public function set_volume(value: Float): Float
@@ -105,28 +97,15 @@ class Sound
         return volume;
     }
 
-    public function set_loop(value: Int): Int
+    public function set_loop(value: Bool): Bool
     {
-        // if it is -1, it is set as infinite loop. any other value will be clamped between 0 and the given repeat value
-        var localValue: Int = value == -1 ? -1 : Std.int(Math.max(0.0, value));
-
-        if (loop != localValue)
+        if (loop != value)
         {
-            loop = localValue;
-            setLoopNative(javaSound, loop);
+            loop = value;
+            setLoopNative(javaSound, loop ? -1 : 0);
         }
 
         return loop;
-    }
-
-    public function get_length(): Float
-    {
-        return getDurationNative(javaSound);
-    }
-
-    public function get_position(): Float
-    {
-        return getPositionNative(javaSound);
     }
 
     public function onSoundLoadCompleted(): Void
@@ -134,14 +113,6 @@ class Sound
         if (loadCallback != null)
         {
             loadCallback(this);
-        }
-    }
-
-    public function onPlaybackCompleted(): Void
-    {
-        if (onPlaybackComplete != null)
-        {
-            onPlaybackComplete.dispatch(this);
         }
     }
 }

@@ -14,7 +14,7 @@ import msignal.Signal;
 class Music
 {
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Music", "create",
-    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;Z)Lorg/haxe/duell/sound/Music;");
+    "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Music;");
     private static var preloadMusicNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
     "preloadMusic", "(Z)V");
     private static var playMusicNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
@@ -51,13 +51,8 @@ class Music
 
     private function new(fileUrl: String)
     {
-        trace("new music");
-
-        var isFromAssets: Bool = false;
-
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
         {
-            isFromAssets = true;
             fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
 
             var pos: Int = 0;
@@ -69,42 +64,34 @@ class Music
             fileUrl = fileUrl.substr(pos);
         }
 
-        javaMusic = createNative(this, fileUrl, isFromAssets);
+        javaMusic = createNative(this, fileUrl);
 
         volume = 1.0;
     }
 
     private function preload(): Void
     {
-        trace("preload");
-
         preloadMusicNative(javaMusic, false);
     }
 
     public function play(): Void
     {
-        trace("play");
-
         playMusicNative(javaMusic);
     }
 
     public function stop(): Void
     {
-        trace("stop");
-
         stopMusicNative(javaMusic);
     }
 
     public function pause(): Void
     {
-        trace("Pause");
-
         pauseMusicNative(javaMusic);
     }
 
     public function mute(): Void
     {
-        this.volume = 0;
+        volume = 0;
     }
 
     public function set_volume(value: Float): Float

@@ -28,9 +28,6 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     private int loop;
     private SoundState state;
 
-    private long duration;
-    private long position;
-
     private boolean playAfterPreload;
 
     public static Sound create(final HaxeObject haxeObject, final String fileUrl, final boolean fromAssets)
@@ -47,7 +44,6 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         // the unique id has to be different for every sound, so a hash of file URL is not sufficient
         uniqueKey = SoundIdProvider.getId();
 
-        duration = -1;
         volume = 1.0f;
         loop = 0;
 
@@ -142,25 +138,10 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         this.loop = loop;
     }
 
-    public float getDuration()
-    {
-        Log.d(TAG, "Get duration");
-
-        return duration;
-    }
-
-    public float getPosition()
-    {
-        Log.d(TAG, "Get position");
-
-        return position;
-    }
-
     public void unload()
     {
         id = -1;
         state = SoundState.UNLOADED;
-        position = 0;
     }
 
     @Override
@@ -169,7 +150,6 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         Log.d(TAG, "Sound ready! ID: " + soundId);
 
         id = soundId;
-        duration = soundDurationMillis;
         state = SoundState.IDLE;
 
         haxeSound.call0("onSoundLoadCompleted");
@@ -183,10 +163,8 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     @Override
     public void onSoundComplete()
     {
-        position = (long) getDuration();
+        // will never get called, but the sound is always IDLE independently of whether it's playing or actually idle
         state = SoundState.IDLE;
-
-        haxeSound.call0("onPlaybackCompleted");
     }
 
     //
