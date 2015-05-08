@@ -12,7 +12,7 @@ import cpp.Lib;
 class Sound
 {
     public var volume(default, set_volume): Float;
-    public var loop(default, set_loop): Int;
+    public var loop(default, set_loop): Bool;
     public var length(default, null): Float;
     public var position(get_position, null): Float;
     public var loadCallback: sound.Sound -> Void;
@@ -23,10 +23,9 @@ class Sound
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
     private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
-    private static var playNativeFunc = Lib.load("soundios","soundios_play",2);
+    private static var playNativeFunc = Lib.load("soundios","soundios_play",3);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
     private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",2);
-    private static var setLoopNativeFunc = Lib.load("soundios","soundios_setLoop",2);
     private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
 
@@ -36,12 +35,11 @@ class Sound
 
     private function new()
     {
-        loop = 0;
-        volume = 1;
+        loop = false;
+        volume = 1.0;
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
-
         var pos: Int = 0;
         while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
         {
@@ -80,7 +78,7 @@ class Sound
             }
             else
             {
-                nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume);
+                nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume, loop);
             }
         }
     }
@@ -122,13 +120,9 @@ class Sound
     }
 
     /// here you can do platform specific logic to make the sound loop
-    private function set_loop(value: Int): Int
+    private function set_loop(value: Bool): Bool
     {
         loop = value;
-        if(nativeSoundChannel != null)
-        {
-            setLoopNativeFunc(nativeSoundChannel, loop);
-        }
         return loop;
     }
     /// get the current time of the current sound

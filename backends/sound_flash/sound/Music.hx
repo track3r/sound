@@ -40,12 +40,11 @@ class Music
         currentState = MusicState.STOPPED;
 
         loop = false;
-        volume = 0.5;
+        volume = 1.0;
 
         onPlaybackComplete = new Signal1();
     }
 
-    @:access(filesystem.FileSystem)
     public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         var fileData = FileSystem.instance().getData(fileUrl);

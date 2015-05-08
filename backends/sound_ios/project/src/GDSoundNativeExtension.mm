@@ -143,13 +143,15 @@ static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
 DEFINE_PRIM(soundios_setDeviceConfig,2);
 
 ///--------------------------------------------------------------------
-static value soundios_play(value filePath, value volume)
+static value soundios_play(value filePath, value volume, value loop)
 {
-    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance] playEffect:(NSString*)val_data(filePath) volume:val_float(volume) pitch:1.0f pan:0.0f loop:NO];
+    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance]
+                                   playEffect:(NSString*)val_data(filePath)
+                                   volume:val_float(volume) pitch:1.0f pan:0.0f loop:val_bool(loop)];
     
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
-DEFINE_PRIM(soundios_play,2);
+DEFINE_PRIM(soundios_play,3);
 
 ///--------------------------------------------------------------------
 static value soundios_stop(value soundSrc)
@@ -217,10 +219,17 @@ void registerMusicNotification()
 
                                 if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
                                 {
-                                        /// notify the user
-                                        val_call0(*__musicStoppedPlaying);
+                                        if(__musicStoppedPlaying != NULL)
+                                        {
+                                            /// notify the user
+                                            val_call0(*__musicStoppedPlaying);
+                                        }
                                 }
                           }];
+
+}
+void unregisterNotification()
+{
 
 }
 static value musicios_initialize(value filePath)
@@ -230,7 +239,6 @@ static value musicios_initialize(value filePath)
 
     musicTrack = [[OALAudioTrack alloc] init];
 
-    registerMusicNotification();
     /// preload the music file
     [musicTrack preloadFile:musicPath];
 
@@ -266,15 +274,16 @@ DEFINE_PRIM (musicios_registerCallback, 2);
 ///--------------------------------------------------------------------
 
 ///--------------------------------------------------------------------
-static value musicios_play(value filePath, value loop)
+static value musicios_play(value filePath, value volume, value loop)
 {
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
     [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
+    musicTrack.volume = val_float(volume);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_play,2);
+DEFINE_PRIM(musicios_play,3);
 
 ///--------------------------------------------------------------------
 static value musicios_stop()
@@ -291,13 +300,6 @@ static value musicios_pause(value pause)
     return alloc_null();
 }
 DEFINE_PRIM(musicios_pause,1);
-
-///--------------------------------------------------------------------
-static value musicios_setLoop(value loop)
-{
-    return alloc_null();
-}
-DEFINE_PRIM(musicios_setLoop,1);
 
 ///--------------------------------------------------------------------
 static value musicios_setVolume(value volume)

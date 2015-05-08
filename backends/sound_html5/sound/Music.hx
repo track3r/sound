@@ -83,8 +83,17 @@ class Music
             loopsCount = 0;
         }
         musicInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
+        musicInstance.on("complete", this.handlePlayComplete, this);
+        musicInstance.volume = volume;
     }
 
+    private function handlePlayComplete(): Void
+    {
+        if(onPlaybackComplete != null)
+        {
+            onPlaybackComplete.dispatch(this);
+        }
+    }
     public function stop(): Void
     {
         if(musicInstance != null)

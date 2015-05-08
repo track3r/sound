@@ -44,10 +44,9 @@ class Sound
         currentState = SoundState.STOPPED;
 
         loop = false;
-        volume = 0.5;
+        volume = 1;
     }
 
-    @:access(filesystem.FileSystem)
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
         var fileData = FileSystem.instance().getData(fileUrl);
@@ -163,7 +162,7 @@ class Sound
             return;
         }
 
-        var soundTransform:SoundTransform = flashSoundChannel.soundTransform;
+        var soundTransform: SoundTransform = flashSoundChannel.soundTransform;
         soundTransform.volume = volume;
         flashSoundChannel.soundTransform = soundTransform;
     }
