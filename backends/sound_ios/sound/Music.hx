@@ -18,20 +18,20 @@ class Music
     public var position(get_position, null): Float;
     public var loadCallback: sound.Music -> Void;
     public var fileUrl: String;
-    public var nativeSoundHandle: Dynamic;
-    public var nativeSoundChannel: Dynamic;
+    public var nativeMusicHandle: Dynamic;
+    public var nativeMusicChannel: Dynamic;
     public var onPlaybackComplete(default,null): Signal1<Music>;
 
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","musicios_registerCallback",2);
     private static var initializeNativeFunc = Lib.load("soundios","musicios_initialize",1);
     private static var playNativeFunc = Lib.load("soundios","musicios_play",3);
-    private static var stopNativeFunc = Lib.load("soundios","musicios_stop",0);
-    private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",1);
-    private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",1);
-    private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",1);
-    private static var getLengthNative = Lib.load("soundios","musicios_getLength",0);
-    private static var getPositionNative = Lib.load("soundios","musicios_getPosition",0);
+    private static var stopNativeFunc = Lib.load("soundios","musicios_stop",1);
+    private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",2);
+    private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",2);
+    private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",2);
+    private static var getLengthNative = Lib.load("soundios","musicios_getLength",1);
+    private static var getPositionNative = Lib.load("soundios","musicios_getPosition",1);
 
 
     private var isPaused:Bool = false;
@@ -58,12 +58,16 @@ class Music
         initializeNativeFunc(fileUrl);
     }
 
-    private function onMusicFinishPlayingCallback(): Void
+    private function onMusicFinishPlayingCallback(filePath: String): Void
     {
-        onPlaybackComplete.dispatch(this);
+        if(filePath == fileUrl)
+        {
+            onPlaybackComplete.dispatch(this);
+        }
     }
-    private function onSoundLoadedCallback(): Void
+    private function onSoundLoadedCallback(nativeMusicHandle: Dynamic): Void
     {
+        this.nativeMusicHandle = nativeMusicHandle;
         if(this.loadCallback != null)
         {
             this.loadCallback(this);
@@ -71,40 +75,52 @@ class Music
     }
     public function play(): Void
     {
-        if(isPaused)
+        if(isPaused && nativeMusicChannel != null)
         {
             /// if it is paused we just resume
             isPaused = false;
-            pauseNativeFunc(false);
+            pauseNativeFunc(nativeMusicChannel, false);
         }
         else
         {
             /// otherwise we play normally
-            playNativeFunc(fileUrl, volume, loop);
+            nativeMusicChannel = playNativeFunc(fileUrl, volume, loop);
         }
     }
 
     public function stop(): Void
     {
-        stopNativeFunc();
+        if(nativeMusicChannel != null)
+        {
+            stopNativeFunc(nativeMusicChannel);
+        }
     }
 
     public function pause(): Void
     {
-        isPaused = true;
-        pauseNativeFunc(true);
+        if(nativeMusicChannel != null)
+        {
+            isPaused = true;
+            pauseNativeFunc(nativeMusicChannel, true);
+        }
     }
 
     public function mute(): Void
     {
-        setMuteNativeFunc(true);
+        if(nativeMusicChannel != null)
+        {
+            setMuteNativeFunc(nativeMusicChannel, true);
+        }
     }
 
     /// here you can do platform specific logic to set the sound volume
     private function set_volume(value: Float): Float
     {
         volume = value;
-        setVolumeNativeFunc(volume);
+        if(nativeMusicChannel != null)
+        {
+            setVolumeNativeFunc(nativeMusicChannel, volume);
+        }
         return volume;
     }
 
@@ -118,12 +134,20 @@ class Music
     /// get the length of the current sound
     private function get_length(): Float
     {
-        return getLengthNative();
+        if(nativeMusicChannel != null)
+        {
+            return getLengthNative(nativeMusicChannel);
+        }
+        return 0.0;
     }
 
     /// get the current time of the current sound
     private function get_position(): Float
     {
-        return getPositionNative();
+        if(nativeMusicChannel != null)
+        {
+            return getPositionNative(nativeMusicChannel);
+        }
+        return 0.0;
     }
 }

@@ -32,8 +32,33 @@ static NSString* valueToNSString(value aHaxeString)
     NSString *aNSString = [NSString stringWithUTF8String:aHaxeChars];
     return aNSString;
 }
+//----------------------------------------------------------------------
+void registerMusicNotification(OALAudioTrack* track, NSString* name)
+{
+    NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
+    [notifyCenter addObserverForName:nil
+                              object:track
+                               queue:nil
+                          usingBlock:^(NSNotification* notification){
 
-DEFINE_KIND(k_SoundFileHadle);
+                                if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
+                                {
+                                        if(__musicStoppedPlaying != NULL)
+                                        {
+                                            /// notify the user
+                                            val_call1(*__musicStoppedPlaying, alloc_string(name.UTF8String));
+                                        }
+                                }
+                          }];
+
+}
+void unregisterNotification(OALAudioTrack* track)
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:track];
+}
+
+/** Creating Sound Haxe Pointer*/
+DEFINE_KIND(k_SoundFileHandle);
 static void soundFinalizer(value abstract_object)
 { 
      NSString* s = (NSString *)val_data(abstract_object);
@@ -44,13 +69,13 @@ static value createHaxePointerForSoundHandle(NSString *soundFilePath)
     [soundFilePath retain];
 
     value v;
-    v = alloc_abstract(k_SoundFileHadle, soundFilePath);
+    v = alloc_abstract(k_SoundFileHandle, soundFilePath);
     val_gc(v, (hxFinalizer) &soundFinalizer);
     return v;
 }
 
 
-static NSString* getSoundFileHandleFromHaxePiinter(value soundPath)
+static NSString* getSoundFileHandleFromHaxePointer(value soundPath)
 {
     return (NSString *)val_data(soundPath);
 }
@@ -77,6 +102,51 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
     return (id<ALSoundSource>)val_data(soundChannel);
 }
 
+/** Creating Music Haxe Pointer*/
+
+DEFINE_KIND(k_MusicFileHandle);
+static void musicFinalizer(value abstract_object)
+{
+     NSString* s = (NSString *)val_data(abstract_object);
+     [s release];
+}
+static value createHaxePointerForMusicHandle(NSString *musicFilePath)
+{
+    [musicFilePath retain];
+    value v;
+    v = alloc_abstract(k_MusicFileHandle, musicFilePath);
+    val_gc(v, (hxFinalizer) &musicFinalizer);
+    return v;
+}
+
+
+static NSString* getMusicFileHandleFromHaxePointer(value musicPath)
+{
+    return (NSString *)val_data(musicPath);
+}
+DEFINE_KIND(k_MusicChannelHandle);
+static void musicChannelFinalizer(value abstract_object)
+{
+     OALAudioTrack* musicTrack = (OALAudioTrack*)val_data(abstract_object);
+     unregisterNotification(musicTrack);
+     [musicTrack release];
+}
+
+static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
+{
+    [musicChannel retain];
+
+    value v;
+    v = alloc_abstract(k_MusicChannelHandle, musicChannel);
+    val_gc(v, (hxFinalizer) &musicChannelFinalizer);
+    return v;
+}
+
+
+static OALAudioTrack* getMusicChannelFromHaxePointer(value musicChannel)
+{
+    return (OALAudioTrack*)val_data(musicChannel);
+}
 //====================================================================
 //
 // Sound Effects
@@ -209,30 +279,8 @@ DEFINE_PRIM(soundios_getPosition,1);
 //
 // Background Music
 //====================================================================
-void registerMusicNotification()
-{
-    NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
-    [notifyCenter addObserverForName:nil
-                              object:nil
-                               queue:nil
-                          usingBlock:^(NSNotification* notification){
 
-                                if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
-                                {
-                                        if(__musicStoppedPlaying != NULL)
-                                        {
-                                            /// notify the user
-                                            val_call0(*__musicStoppedPlaying);
-                                        }
-                                }
-                          }];
-
-}
-void unregisterNotification()
-{
-
-}
-static value musicios_initialize(value filePath)
+static value musicios_initialize(value filePath, value currentMusic)
 {
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
@@ -241,10 +289,11 @@ static value musicios_initialize(value filePath)
 
     /// preload the music file
     [musicTrack preloadFile:musicPath];
+    registerMusicNotification(musicTrack, musicPath);
 
-    /// music is preloaded and initialized
-    val_call0(*__musicLoadComplete);
+    value hxMusicHandle = createHaxePointerForSoundHandle(musicPath);
 
+    val_call1(*__musicLoadComplete, hxMusicHandle);
     return alloc_null();
 }
 DEFINE_PRIM(musicios_initialize,1);
@@ -253,8 +302,8 @@ DEFINE_PRIM(musicios_initialize,1);
 
 static value musicios_registerCallback(value loadFinishCallback, value musicFinishPlayingCallback)
 {
-    val_check_function(loadFinishCallback, 0); // Is Func ?
-    val_check_function(musicFinishPlayingCallback, 0); // Is Func ?
+    val_check_function(loadFinishCallback, 1); // Is Func ?
+    val_check_function(musicFinishPlayingCallback, 1); // Is Func ?
 
     if(__musicLoadComplete == NULL)
     {
@@ -281,53 +330,53 @@ static value musicios_play(value filePath, value volume, value loop)
 
     [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
     musicTrack.volume = val_float(volume);
-    return alloc_null();
+    return createHaxePointerForMusicChannelHandle(musicTrack);
 }
 DEFINE_PRIM(musicios_play,3);
 
 ///--------------------------------------------------------------------
-static value musicios_stop()
+static value musicios_stop(value musicSrc)
 {
-    [musicTrack stop];
+    [getMusicChannelFromHaxePointer(musicSrc) stop];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_stop,0);
+DEFINE_PRIM(musicios_stop,1);
 
 ///--------------------------------------------------------------------
-static value musicios_pause(value pause)
+static value musicios_pause(value musicSrc, value pause)
 {
-    musicTrack.paused = (bool)val_bool(pause);
+    getMusicChannelFromHaxePointer(musicSrc).paused = (bool)val_bool(pause);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_pause,1);
+DEFINE_PRIM(musicios_pause,2);
 
 ///--------------------------------------------------------------------
-static value musicios_setVolume(value volume)
+static value musicios_setVolume(value musicSrc, value volume)
 {
-    musicTrack.volume = val_float(volume);
+    getMusicChannelFromHaxePointer(musicSrc).volume = val_float(volume);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setVolume,1);
+DEFINE_PRIM(musicios_setVolume,2);
 
 ///--------------------------------------------------------------------
-static value musicios_setMute(value mute)
+static value musicios_setMute(value musicSrc, value mute)
 {
-    musicTrack.muted = val_bool(mute);
+    getMusicChannelFromHaxePointer(musicSrc).muted = val_bool(mute);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setMute,1);
+DEFINE_PRIM(musicios_setMute,2);
 
 ///--------------------------------------------------------------------
-static value musicios_getPosition()
+static value musicios_getPosition(value musicSrc)
 {
-    return alloc_float(musicTrack.currentTime);
+    return alloc_float(getMusicChannelFromHaxePointer(musicSrc).currentTime);
 }
-DEFINE_PRIM(musicios_getPosition,0);
+DEFINE_PRIM(musicios_getPosition,1);
 
 ///--------------------------------------------------------------------
-static value musicios_getLength()
+static value musicios_getLength(value musicSrc)
 {
-    return alloc_float(musicTrack.duration * 1000);/// in millisecond
+    return alloc_float(getMusicChannelFromHaxePointer(musicSrc).duration * 1000);/// in millisecond
 }
 DEFINE_PRIM(musicios_getLength,1);
 
