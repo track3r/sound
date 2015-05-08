@@ -1,66 +1,69 @@
-/**
- * @author kgar
- * @date  23/12/14 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
 import msignal.Signal;
 import types.Data;
 import cpp.Lib;
-///=================///
-/// Sound IOS       ///
-///                 ///
-///=================///
+/**
+ * @author kgar
+ */
 class Sound
 {
     public var volume(default, set_volume): Float;
     public var loop(default, set_loop): Int;
-    public var length(get_length, null): Float;
+    public var length(default, null): Float;
     public var position(get_position, null): Float;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
     public var nativeSoundHandle: Dynamic;
     public var nativeSoundChannel: Dynamic;
+
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
     private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
-    private static var playNativeFunc = Lib.load("soundios","soundios_play",1);
+    private static var playNativeFunc = Lib.load("soundios","soundios_play",2);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
     private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",2);
     private static var setLoopNativeFunc = Lib.load("soundios","soundios_setLoop",2);
     private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
 
-    public var onPlaybackComplete(default,null): Signal1<Sound>;
+    private static var getPositionNative = Lib.load("soundios","soundios_getPosition",1);
+
+    private var isPaused: Bool = false;
 
     private function new()
     {
         loop = 0;
+        volume = 1;
     }
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
-        var soundObj: Sound = new Sound();
-        soundObj.loadCallback = loadCallback;
-        soundObj.fileUrl = fileUrl;
 
         var pos: Int = 0;
         while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
         {
             pos++;
         }
-
         fileUrl = fileUrl.substr(pos);
+
+        var soundObj: Sound = new Sound();
+        soundObj.loadCallback = loadCallback;
+        soundObj.fileUrl = fileUrl;
 
         soundObj.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
         registerCallbackNativeFunc(onSoundLoadedCallback);
-        initializeNativeFunc(fileUrl,this);
+        initializeNativeFunc(fileUrl, this);
     }
-    private function onSoundLoadedCallback(nativeSoundHandle: Dynamic): Void
+    private function onSoundLoadedCallback(nativeSoundHandle: Dynamic, length: Float): Void
     {
         this.nativeSoundHandle = nativeSoundHandle;
+        this.length = length;
         if(this.loadCallback != null)
         {
             this.loadCallback(this);
@@ -70,7 +73,15 @@ class Sound
     {
         if(nativeSoundHandle != null)
         {
-            nativeSoundChannel = playNativeFunc(nativeSoundHandle);
+            if(isPaused)
+            {
+                isPaused = false;
+                pauseNativeFunc(nativeSoundChannel,false);
+            }
+            else
+            {
+                nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume);
+            }
         }
     }
 
@@ -86,6 +97,7 @@ class Sound
     {
         if(nativeSoundChannel != null)
         {
+            isPaused = true;
             pauseNativeFunc(nativeSoundChannel,true);
         }
     }
@@ -119,16 +131,13 @@ class Sound
         }
         return loop;
     }
-
-    /// get the length of the current sound
-    private function get_length(): Float
-    {
-        return 0.0;
-    }
-
     /// get the current time of the current sound
     private function get_position(): Float
     {
+        if(nativeSoundChannel != null)
+        {
+            return getPositionNative(nativeSoundChannel);
+        }
         return 0.0;
     }
 }

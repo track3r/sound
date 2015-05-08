@@ -1,7 +1,6 @@
-/**
- * @author kgar
- * @date  28/04/15 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
 import flash.events.Event;
@@ -16,6 +15,9 @@ enum MusicState
     PLAYING;
     PAUSED;
 }
+/**
+ * @author kgar
+ */
 class Music
 {
     public var volume(default,set_volume): Float;
@@ -133,7 +135,7 @@ class Music
         // not to loop the cropped sound over and over
         // on SoundComplete will set the loop back if needed
         var loopsCount = 9999;
-        if(currentHead>0 || !loop)
+        if(currentHead > 0 || !loop)
         {
             loopsCount = 0;
         }

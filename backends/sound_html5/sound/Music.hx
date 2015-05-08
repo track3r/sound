@@ -1,29 +1,34 @@
-/**
- * @author kgar
- * @date  29/04/15 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
 import filesystem.FileSystem;
 import msignal.Signal.Signal1;
+/**
+ * @author kgar
+ */
 class Music
 {
     public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Int;
+    public var loop(default,set_loop): Bool;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
     public var onPlaybackComplete(default,null): Signal1<Music>;
     public var loadCallback: sound.Music -> Void;
 
     public var fileUrl: String;
-    private var soundInstance: createjs.soundjs.SoundInstance;
+    private var musicInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
     private static var pluginsRegistered: Bool = false;
+
     public function new()
     {
         isPaused = false;
-        loop = 0;
+        loop = false;
+        volume = 1.0;
     }
+
     public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
@@ -44,14 +49,6 @@ class Music
         {
             throw "Sounds not supported outside the assets";
         }
-
-        if(!pluginsRegistered)
-        {
-            //fallback will be in the same order
-            createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
-            pluginsRegistered = true;
-        }
-
         var music: Music = new Music();
         music.loadCallback = loadCallback;
         music.fileUrl = fileUrl;
@@ -59,25 +56,24 @@ class Music
     }
     public function loadSoundFile(): Void
     {
-        createjs.soundjs.Sound.addEventListener("fileload", handleLoad);
-        createjs.soundjs.Sound.registerSound(fileUrl,fileUrl);
+        SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
+        SoundLoader.getInstance().loadSound(fileUrl);
     }
-    private function handleLoad(event: Dynamic): Void
+    private function soundHandleLoad(soundID: String): Void
     {
-        if(this.loadCallback != null)
+        if(soundID == this.fileUrl)
         {
-            this.loadCallback(this);
+            if(this.loadCallback != null)
+            {
+                this.loadCallback(this);
+            }
         }
     }
     public function play(): Void
     {
-        if(soundInstance == null)
+        if(isPaused && musicInstance != null)
         {
-            return;
-        }
-        if(isPaused)
-        {
-            soundInstance.resume();
+            musicInstance.resume();
             isPaused = false;
             return;
         }
@@ -86,32 +82,32 @@ class Music
         {
             loopsCount = 0;
         }
-        soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
+        musicInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
     }
 
     public function stop(): Void
     {
-        if(soundInstance != null)
+        if(musicInstance != null)
         {
-            soundInstance.stop();
-            soundInstance = null;
+            musicInstance.stop();
+            musicInstance = null;
         }
     }
 
     public function pause(): Void
     {
-        if(soundInstance != null)
+        if(musicInstance != null)
         {
             isPaused = true;
-            soundInstance.pause();
+            musicInstance.pause();
         }
     }
 
     public function mute(): Void
     {
-        if(soundInstance != null)
+        if(musicInstance != null)
         {
-            soundInstance.setMute(true);
+            musicInstance.setMute(true);
         }
     }
 
@@ -119,11 +115,15 @@ class Music
     private function set_volume(value: Float): Float
     {
         volume = value;
+        if(musicInstance != null)
+        {
+            musicInstance.volume = volume;
+        }
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
-    private function set_loop(value: Int): Int
+    private function set_loop(value: Bool): Bool
     {
         loop = value;
         return loop;
@@ -132,19 +132,20 @@ class Music
     /// get the length of the current sound
     private function get_length(): Float
     {
-        if(soundInstance == null)
+        if(musicInstance == null)
         {
             return 0.0;
         }
-        return soundInstance.getDuration();
+        return musicInstance.getDuration();
     }
 
     /// get the current time of the current sound
     private function get_position(): Float
     {
-        if(soundInstance == null)
+        if(musicInstance == null)
         {
             return 0.0;
         }
-        return soundInstance.getPosition();
-    }}
+        return musicInstance.getPosition();
+    }
+}

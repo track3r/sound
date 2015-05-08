@@ -1,40 +1,33 @@
-/**
- * @author kgar
- * @date  23/12/14 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
-import msignal.Signal;
-import createjs.soundjs.Sound;
-import createjs.soundjs.WebAudioPlugin;
-import createjs.soundjs.HTMLAudioPlugin;
-
 import filesystem.FileSystem;
-
-import types.Data;
-///=================///
-/// Sound html5     ///
-///                 ///
-///=================///
+import msignal.Signal.Signal1;
+/**
+ * @author kgar
+ */
 class Sound
 {
     public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Int;
+    public var loop(default,set_loop): Bool;
     public var length(get_length,null): Float;
     public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<Sound>;
     public var loadCallback: sound.Sound -> Void;
 
     public var fileUrl: String;
     private var soundInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
-    private static var pluginsRegistered: Bool = false; 
+    private static var pluginsRegistered: Bool = false;
 
-    private function new()
+    public function new()
     {
         isPaused = false;
-        loop = 0;
+        loop = false;
+        volume = 1.0;
     }
+
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
         if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
@@ -51,55 +44,43 @@ class Sound
             fileUrl = "assets/" + fileUrl;
         }
         else if (fileUrl.indexOf(FileSystem.instance().urlToCachedData()) == 0 ||
-                 fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
+        fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
         {
             throw "Sounds not supported outside the assets";
         }
 
-        if(!pluginsRegistered)
-        {
-            //fallback will be in the same order
-            createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
-            pluginsRegistered = true;
-        }
-
-        var soundObj: Sound = new Sound();
-        soundObj.loadCallback = loadCallback;
-        soundObj.fileUrl = fileUrl;
-        soundObj.loadSoundFile();
+        var soundObject: Sound = new sound.Sound();
+        soundObject.loadCallback = loadCallback;
+        soundObject.fileUrl = fileUrl;
+        soundObject.loadSoundFile();
     }
     public function loadSoundFile(): Void
     {
-        createjs.soundjs.Sound.addEventListener("fileload", handleLoad);
-        createjs.soundjs.Sound.registerSound(fileUrl,fileUrl);
-    }  
-    private function handleLoad(event: Dynamic): Void
+        SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
+        SoundLoader.getInstance().loadSound(fileUrl);
+    }
+    private function soundHandleLoad(soundID: String): Void
     {
-        if(this.loadCallback != null)
+        if(soundID == this.fileUrl)
         {
-            this.loadCallback(this);
+            if(this.loadCallback != null)
+            {
+                this.loadCallback(this);
+            }
         }
     }
     public function play(): Void
     {
-        if(soundInstance == null)
-        {
-            return;
-        }
-        if(isPaused)
+        if(isPaused && soundInstance != null)
         {
             soundInstance.resume();
             isPaused = false;
             return;
         }
         var loopsCount = 9999;
-        if(loop == 0)
+        if(!loop)
         {
             loopsCount = 0;
-        }
-        else if(loop > 0)
-        {
-            loopsCount = loop;
         }
         soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
     }
@@ -134,11 +115,15 @@ class Sound
     private function set_volume(value: Float): Float
     {
         volume = value;
+        if(soundInstance != null)
+        {
+            soundInstance.volume = volume;
+        }
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
-    private function set_loop(value: Int): Int
+    private function set_loop(value: Bool): Bool
     {
         loop = value;
         return loop;

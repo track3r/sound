@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
-#import "GDSoundNativeExtension.h"
+#import "OALAudioTrackNotifications.h"
 
 /// sound Effects
 value *__soundLoadComplete = NULL;
@@ -18,38 +18,7 @@ NSString *filePath;
 /// Background Music
 OALAudioTrack* musicTrack;
 value *__musicLoadComplete = NULL;
-
-/// AVAudioPlayer Delegate
-@implementation GDSoundNativeExtension
-
-- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag
-{
-    NSLog(@"audioPlayerDidFinishPlaying");
-}
-- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error
-{
-    NSLog(@"audioPlayerDecodeErrorDidOccur");
-}
-
-/// Deprecated in IOS8
-- (void)audioPlayerBeginInterruption:(AVAudioPlayer *)player
-{
-
-}
-- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player withOptions:(NSUInteger)flags
-{
-
-}
-- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player
-{
-
-}
-- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player withFlags:(NSUInteger)flags
-{
-
-}
-
-@end
+value *__musicStoppedPlaying = NULL;
 //====================================================================
 //
 // Utils
@@ -116,7 +85,7 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
 ///-------------------------------------------------------------------
 static value soundios_registerCallback(value callback)
 {
-    val_check_function(callback, 1); // Is Func ?
+    val_check_function(callback, 2); // Is Func ?
 
     if(__soundLoadComplete == NULL)
     {
@@ -133,14 +102,14 @@ static value soundios_initialize(value soundPath, value currentSound)
 
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
-    [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
+    ALBuffer* buffer = [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
 
     value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
     
-    val_call1(*__soundLoadComplete, hxSoundHandle);
+    val_call2(*__soundLoadComplete, hxSoundHandle, alloc_float(buffer.duration * 1000));
     return alloc_null();
 }
-DEFINE_PRIM(soundios_intialize,2);
+DEFINE_PRIM(soundios_initialize,2);
 ///--------------------------------------------------------------------
 static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
 {
@@ -169,18 +138,18 @@ static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
 
     // Deal with interruptions for me!
     [OALAudioSession sharedInstance].handleInterruptions = YES;
-
+    return alloc_null();
 }
 DEFINE_PRIM(soundios_setDeviceConfig,2);
 
 ///--------------------------------------------------------------------
-static value soundios_play(value filePath)
+static value soundios_play(value filePath, value volume)
 {
-    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance] playEffect:(NSString*)val_data(filePath)];
+    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance] playEffect:(NSString*)val_data(filePath) volume:val_float(volume) pitch:1.0f pan:0.0f loop:NO];
     
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
-DEFINE_PRIM(soundios_play,1);
+DEFINE_PRIM(soundios_play,2);
 
 ///--------------------------------------------------------------------
 static value soundios_stop(value soundSrc)
@@ -228,16 +197,40 @@ static value soundios_setMute(value soundSrc, value mute)
 }
 DEFINE_PRIM(soundios_setMute,2);
 
+///--------------------------------------------------------------------
+static value soundios_getPosition(value soundSrc)
+{
+    return alloc_float(getSoundChannelFromHaxePointer(soundSrc).position.x) ;
+}
+DEFINE_PRIM(soundios_getPosition,1);
 //====================================================================
 //
 // Background Music
 //====================================================================
+void registerMusicNotification()
+{
+    NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
+    [notifyCenter addObserverForName:nil
+                              object:nil
+                               queue:nil
+                          usingBlock:^(NSNotification* notification){
 
+                                if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
+                                {
+                                        /// notify the user
+                                        val_call0(*__musicStoppedPlaying);
+                                }
+                          }];
+
+}
 static value musicios_initialize(value filePath)
 {
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
+    musicTrack = [[OALAudioTrack alloc] init];
+
+    registerMusicNotification();
     /// preload the music file
     [musicTrack preloadFile:musicPath];
 
@@ -250,29 +243,36 @@ DEFINE_PRIM(musicios_initialize,1);
 
 ///--------------------------------------------------------------------
 
-static value musicios_registerCallback(value callback)
+static value musicios_registerCallback(value loadFinishCallback, value musicFinishPlayingCallback)
 {
-    val_check_function(callback, 0); // Is Func ?
+    val_check_function(loadFinishCallback, 0); // Is Func ?
+    val_check_function(musicFinishPlayingCallback, 0); // Is Func ?
 
     if(__musicLoadComplete == NULL)
     {
         __musicLoadComplete = alloc_root();
     }
-    *__musicLoadComplete = callback;
+    *__musicLoadComplete = loadFinishCallback;
+
+    if(__musicStoppedPlaying == NULL)
+    {
+        __musicStoppedPlaying = alloc_root();
+    }
+    *__musicStoppedPlaying = musicFinishPlayingCallback;
+
     return alloc_null();
 }
-DEFINE_PRIM (musicios_registerCallback, 1);
+DEFINE_PRIM (musicios_registerCallback, 2);
 ///--------------------------------------------------------------------
 
 ///--------------------------------------------------------------------
-static value musicios_play(value filePath, value loopsCount)
+static value musicios_play(value filePath, value loop)
 {
-    /// convert to NString
+    /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
-    int loops = (int)val_int(loopsCount);
-    musicTrack.delegate = [[GDSoundNativeExtension alloc] init];
 
-    [musicTrack playFile:musicPath loops:loops];
+    [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
+    return alloc_null();
 }
 DEFINE_PRIM(musicios_play,2);
 
@@ -314,5 +314,19 @@ static value musicios_setMute(value mute)
     return alloc_null();
 }
 DEFINE_PRIM(musicios_setMute,1);
+
+///--------------------------------------------------------------------
+static value musicios_getPosition()
+{
+    return alloc_float(musicTrack.currentTime);
+}
+DEFINE_PRIM(musicios_getPosition,0);
+
+///--------------------------------------------------------------------
+static value musicios_getLength()
+{
+    return alloc_float(musicTrack.duration * 1000);/// in millisecond
+}
+DEFINE_PRIM(musicios_getLength,1);
 
 extern "C" int soundios_register_prims () { return 0; }
