@@ -6,7 +6,6 @@ package org.haxe.duell.sound;
 
 import android.util.Log;
 import org.haxe.duell.hxjni.HaxeObject;
-import org.haxe.duell.sound.helper.SoundIdProvider;
 import org.haxe.duell.sound.listener.OnSoundCompleteListener;
 import org.haxe.duell.sound.listener.OnSoundReadyListener;
 import org.haxe.duell.sound.manager.SoundManager;
@@ -20,10 +19,7 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     private final HaxeObject haxeMusic;
     private final String fileUrl;
-    private final boolean fromAssets;
-    private final int uniqueKey;
 
-    private int id;
     private float volume;
     private boolean looped;
     private SoundState state;
@@ -33,19 +29,15 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     private boolean playAfterPreload;
 
-    public static Music create(final HaxeObject haxeObject, final String fileUrl, final boolean fromAssets)
+    public static Music create(final HaxeObject haxeObject, final String fileUrl)
     {
-        return new Music(haxeObject, fileUrl, fromAssets);
+        return new Music(haxeObject, fileUrl);
     }
 
-    private Music(final HaxeObject haxeMusic, final String fileUrl, final boolean fromAssets)
+    private Music(final HaxeObject haxeMusic, final String fileUrl)
     {
         this.haxeMusic = haxeMusic;
         this.fileUrl = fileUrl;
-        this.fromAssets = fromAssets;
-
-        // the unique id has to be different for every sound, so a hash of file URL is not sufficient
-        uniqueKey = SoundIdProvider.getId();
 
         duration = -1;
         volume = 1.0f;
@@ -178,7 +170,6 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     public void unload()
     {
-        id = -1;
         state = SoundState.UNLOADED;
         position = 0;
     }
@@ -188,7 +179,6 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     {
         Log.d(TAG, "Music ready! ID: " + soundId);
 
-        id = soundId;
         duration = soundDurationMillis;
         state = SoundState.IDLE;
 
@@ -223,11 +213,6 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     // Getters
     //
 
-    public boolean isReady()
-    {
-        return state != SoundState.UNLOADED;
-    }
-
     public String getFileUrl()
     {
         return fileUrl;
@@ -241,20 +226,5 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     public float getVolume()
     {
         return volume;
-    }
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public int getUniqueKey()
-    {
-        return uniqueKey;
-    }
-
-    public boolean isFromAssets()
-    {
-        return fromAssets;
     }
 }

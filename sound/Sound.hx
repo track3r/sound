@@ -11,10 +11,6 @@ extern class Sound
     public var volume (default, set): Int;
     /** set it to true if you want the sound to loop */
     public var loop (default, set): Bool;
-    /** get the length of the sound file in millisecond*/
-    public var length (get, null): Float;
-    /** get the current position of the curent playing sound*/
-    public var position (get, null): Float;
     /** the callback when the sound is fully loaded and decoded Hopefully :)*/
     public var loadCallback: Sound -> Void;
     /** the sound file URL*/

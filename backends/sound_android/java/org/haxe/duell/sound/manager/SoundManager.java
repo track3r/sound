@@ -495,6 +495,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
         playerState = MediaPlayerState.STARTED;
 
+        setMusicLoop(music.isLooped());
+        setMusicVolume(music.getVolume());
         player.start();
 
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
