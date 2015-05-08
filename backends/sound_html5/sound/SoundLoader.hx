@@ -1,10 +1,13 @@
-/**
- * @author kgar
- * @date  07/05/15 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2015 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
+
 package sound;
 import msignal.Signal.Signal1;
+/**
+ * @author kgar
+ */
 class SoundLoader
 {
     public var soundLoaded: Signal1<String>;

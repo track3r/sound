@@ -1,11 +1,13 @@
-/**
- * @author kgar
- * @date  29/04/15 
- * Copyright (c) 2014 GameDuell GmbH
+/*
+ * Copyright (c) 2003-2014 GameDuell GmbH, All Rights Reserved
+ * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
 import filesystem.FileSystem;
 import msignal.Signal.Signal1;
+/**
+ * @author kgar
+ */
 class Sound
 {
     public var volume(default,set_volume): Float;
