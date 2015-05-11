@@ -78,6 +78,7 @@ class Sound
             }
             else
             {
+                stop();
                 nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume, loop);
             }
         }
