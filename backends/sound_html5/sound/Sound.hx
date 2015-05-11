@@ -77,6 +77,11 @@ class Sound
             isPaused = false;
             return;
         }
+
+        if(soundInstance != null)
+        {
+            stop();
+        }
         var loopsCount = 9999;
         if(!loop)
         {

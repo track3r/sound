@@ -77,6 +77,12 @@ class Music
             isPaused = false;
             return;
         }
+
+        if(musicInstance != null)
+        {
+            stop();
+        }
+
         var loopsCount = 9999;
         if(!loop)
         {
