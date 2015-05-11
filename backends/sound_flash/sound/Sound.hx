@@ -90,8 +90,11 @@ class Sound
 
     private function updateState(state:SoundState):Void
     {
-        if(currentState == state)
+        trace("updateState ", state);
+        if(currentState == SoundState.PLAYING && state == currentState)
         {
+            stopSound();
+            playSound();
             return;
         }
 
@@ -110,6 +113,7 @@ class Sound
 
     private function playSound(): Void
     {
+
         removeSoundCompleteListener();
 
         flashSoundChannel = null;
@@ -173,7 +177,6 @@ class Sound
     private function onSoundComplete(event:Event):Void
     {
         updateCurrentHead(0.0);
-
         if(loop)
         {
             // if the sound should loop and it triggered the complete event
