@@ -5,13 +5,12 @@
 package sound;
 import flash.media.SoundTransform;
 import flash.events.Event;
-import filesystem.FileSystem;
-import msignal.Signal;
-import types.Data;
 import flash.media.Sound;
 import flash.media.SoundChannel;
 
 import filesystem.FileSystem;
+
+import types.Data;
 
 enum SoundState
 {
@@ -195,6 +194,7 @@ class Sound
     public function mute(): Void
     {
         volume = 0;
+        updateVolume();
     }
 
     /**

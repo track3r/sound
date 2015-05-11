@@ -92,6 +92,7 @@ class Music
     public function mute(): Void
     {
         volume = 0;
+        updateVolume();
     }
 
     /**
