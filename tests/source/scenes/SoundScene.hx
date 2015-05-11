@@ -108,6 +108,7 @@ class SoundScene extends Scene
         {
             if (soundTrack != null)
             {
+                soundTrack.loop = true;
                 soundTrack.play();
             }
         });

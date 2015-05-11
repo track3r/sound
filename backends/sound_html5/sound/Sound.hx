@@ -87,7 +87,7 @@ class Sound
         {
             loopsCount = 0;
         }
-        soundInstance = createjs.soundjs.Sound.play(fileUrl,null,0,loopsCount);
+        soundInstance = createjs.soundjs.Sound.play(fileUrl, null, 0, 0, loopsCount);
         soundInstance.volume = volume;
     }
 
