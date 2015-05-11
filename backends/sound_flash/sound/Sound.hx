@@ -127,8 +127,8 @@ class Sound
         {
             loopsCount = 0;
         }
-        addSoundCompleteListener();
         flashSoundChannel = flashSound.play(currentHead, loopsCount);
+        addSoundCompleteListener();
         updateVolume();
     }
 
@@ -176,6 +176,7 @@ class Sound
     */
     private function onSoundComplete(event:Event):Void
     {
+        trace("onSoundComplete");
         updateCurrentHead(0.0);
         if(loop)
         {
