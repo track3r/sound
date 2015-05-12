@@ -129,6 +129,12 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         Log.d(TAG, "Set volume: " + volume);
 
         this.volume = volume;
+
+        if (state != SoundState.UNLOADED)
+        {
+            // update immediately if the sound is loaded
+            SoundManager.getSharedInstance().setSoundVolume(this, volume);
+        }
     }
 
     public void setLoop(final int loop)

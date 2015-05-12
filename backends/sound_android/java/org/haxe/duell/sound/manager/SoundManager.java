@@ -350,6 +350,19 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         }
     }
 
+    public void setSoundVolume(Sound sound, float volume)
+    {
+        int[] streams = findSoundInStreams(sound.getId());
+
+        for (int stream : streams)
+        {
+            if (stream > 0)
+            {
+                sfxPool.setVolume(stream, volume, volume);
+            }
+        }
+    }
+
     private int[] findSoundInStreams(int soundId)
     {
         int[] streams = new int[soundStreams.size()];
