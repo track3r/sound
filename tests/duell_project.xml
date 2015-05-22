@@ -3,13 +3,14 @@
 	<app file="soundExample" title="Sound Test Scene" package="com.gameduell.tests.sound"
 		version="0.0.1" company="GameDuell GmbH" />
 
-	<main name="Main" />
+	<main name="MainTest" />
+	<!-- <main name="Main" /> -->
 
 	<source path="source" />
 
 	<duelllib name="sound" version="master"/>
-    <duelllib name="game_engine" version="14.0.0+"/>
-    <duelllib name="game_engine_extensions" version="14.0.0+"/>
+    <duelllib name="duellkit" version="4.0.0+"/>
+	<duelllib name="unittest" version="3.0.0+" />
 
     <platform-config>
     </platform-config>
