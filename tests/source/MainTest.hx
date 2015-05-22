@@ -52,10 +52,10 @@ class MainTest
     }
 
     /// MAIN
-    static var _main: Main;
+    static var _main: MainTest;
 
     static function main(): Void
     {
-        _main = new Main();
+        _main = new MainTest();
     }
 }

@@ -8,6 +8,8 @@ import sound.Sound;
 import sound.Music;
 
 import unittest.TestCase;
+
+import filesystem.FileSystem;
 /**
  * @author kgar
  */
@@ -16,8 +18,10 @@ class SoundTest extends TestCase
     private var SOUND_URL: String = "shotgun.mp3";
     private var MUSIC_URL: String = "helicopter.mp3";
 
+
     public function testIfSoundSuccessfullyLoaded(): Void
     {
+        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + SOUND_URL;
         /// sound Callback
         function onSoundReady(loadedSound: Sound): Void
         {
@@ -25,19 +29,20 @@ class SoundTest extends TestCase
             assertAsyncFinish("testIfSoundSuccessfullyLoaded");
         }
         assertAsyncStart("testIfSoundSuccessfullyLoaded", 3.0);
-        Sound.load(SOUND_URL, onSoundReady);
+        Sound.load(fileUrl, onSoundReady);
     }
 
     public function testIfMusicSuccessfullyLoaded(): Void
     {
+        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + MUSIC_URL;
         /// music Callback
         function onMusicReady(loadedMusic: Music): Void
         {
-            assertTrue(loadedSound != null);
+            assertTrue(loadedMusic != null);
             assertAsyncFinish("testIfMusicSuccessfullyLoaded");
         }
         assertAsyncStart("testIfMusicSuccessfullyLoaded", 3.0);
-        Music.load(MUSIC_URL, onMusicReady);
+        Music.load(fileUrl, onMusicReady);
     }
 
 }
