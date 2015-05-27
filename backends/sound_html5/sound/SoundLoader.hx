@@ -10,6 +10,7 @@ import msignal.Signal.Signal1;
  */
 class SoundLoader
 {
+    public var loadedSounds: Array<String>;
     public var soundLoaded: Signal1<String>;
     private static var soundLoaderInstance: sound.SoundLoader;
 
@@ -18,6 +19,7 @@ class SoundLoader
         //fallback will be in the same order
         createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
         soundLoaded = new Signal1();
+        loadedSounds = [];
     }
 
     public static function getInstance(): SoundLoader
@@ -31,8 +33,16 @@ class SoundLoader
 
     public function loadSound(fileUrl: String): Void
     {
-        createjs.soundjs.Sound.addEventListener("fileload", soundHandleLoad);
-        createjs.soundjs.Sound.registerSound(fileUrl, fileUrl);
+        if(loadedSounds.indexOf(fileUrl)>=0)
+        {
+            soundLoaded.dispatch(fileUrl);
+        }
+        else
+        {
+            loadedSounds.push(fileUrl);
+            createjs.soundjs.Sound.addEventListener("fileload", soundHandleLoad);
+            createjs.soundjs.Sound.registerSound(fileUrl, fileUrl);
+        }
     }
 
     public function soundHandleLoad(event: Dynamic): Void
