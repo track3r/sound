@@ -18,7 +18,6 @@ class SoundTest extends TestCase
     private var SOUND_URL: String = "shotgun.mp3";
     private var MUSIC_URL: String = "helicopter.mp3";
 
-
     public function testIfSoundSuccessfullyLoaded(): Void
     {
         var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + SOUND_URL;
@@ -44,5 +43,42 @@ class SoundTest extends TestCase
         assertAsyncStart("testIfMusicSuccessfullyLoaded", 3.0);
         Music.load(fileUrl, onMusicReady);
     }
+
+    public function testMoreThanOneSoundFxPlayingInstantlyWithoutCrash(): Void
+    {
+        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + SOUND_URL;
+        var sounds: Array<Sound> = [];
+        function playSounds(): Void
+        {
+            for ( soundItem in sounds )
+            {
+                soundItem.loop = false;
+                soundItem.volume = 0.5;
+                soundItem.play();
+            }
+            assertAsyncFinish("testMoreThanOneSoundFxPlayingInstantlyWithoutCrash");
+        }
+        assertAsyncStart("testMoreThanOneSoundFxPlayingInstantlyWithoutCrash", 30.0);
+        var i: Int = 0;
+        function loadSound(): Void
+        {
+            Sound.load(fileUrl, function(s: Sound): Void
+                                {
+                                    i++;
+                                    sounds.push(s);
+                                    if(sounds.length == 5)
+                                    {
+                                        trace("Playing Sounds");
+                                        playSounds();
+                                    }
+                                    else
+                                    {
+                                        loadSound();
+                                    }
+                                });
+        }
+        loadSound();
+    }
+
 
 }
