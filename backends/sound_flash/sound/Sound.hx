@@ -65,6 +65,7 @@ class Sound
         dispose();
 
         flashSound = new flash.media.Sound();
+        fileData.byteArray.position = 0;
         flashSound.loadCompressedDataFromByteArray(fileData.byteArray, fileData.byteArray.length);
 
         if (this.loadCallback != null)
