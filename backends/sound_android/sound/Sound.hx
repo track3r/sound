@@ -10,6 +10,7 @@ import hxjni.JNI;
 /**
  * @author jxav
  */
+@:keep
 class Sound
 {
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
