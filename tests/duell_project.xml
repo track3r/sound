@@ -14,12 +14,19 @@
 	<duelllib name="game_engine_extensions" version="15.0.0+"/>
 
     <platform-config>
-    </platform-config>
+    	<android>
+			<icon path="icons/android" />
+		</android>
+    	<ios>
+			<icon path="icons/ios" />
+		</ios>
+	</platform-config>
 
     <library-config>
         <filesystem>
             <static-assets path="Assets" />
         </filesystem>
     </library-config>
+
 
 </project>
