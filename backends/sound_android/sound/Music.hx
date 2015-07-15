@@ -11,6 +11,7 @@ import msignal.Signal;
 /**
  * @author jxav
  */
+@:keep
 class Music
 {
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Music", "create",
