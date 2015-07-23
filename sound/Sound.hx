@@ -30,5 +30,5 @@ extern class Sound
     public function mute(): Void;
 
     /** load and decode a given sound*/
-    public static function load(loadCallback: Void -> Sound);
+    public static function load(loadCallback: Void -> Sound): Void;
 }

@@ -21,7 +21,7 @@ extern class Music
     public var fileUrl: String;
 
     /** dispatches when the music finishes playing or stopped*/
-    public var onPlaybackComplete (default, null): Signal1;
+    public var onPlaybackComplete (default, null): Signal1<Music>;
 
     /** constructor nothing fancy */
     private function new(fileUrl: String);
@@ -37,5 +37,5 @@ extern class Music
     /** mute the sound, means volume is 0*/
     public function mute(): Void;
 
-    public static function load(loadCallback: Void -> Sound);
+    public static function load(loadCallback: Void -> Sound): Void;
 }
