@@ -411,8 +411,9 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         if (player.isPlaying())
         {
             stopMusic();
-            reset();
         }
+
+        reset();
 
         String fileUrl = music.getFileUrl();
 
