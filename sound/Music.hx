@@ -8,7 +8,7 @@ import msignal.Signal.Signal1;
 extern class Music
 {
     /** the sound volume goes from 0 to 1 */
-    public var volume (default, set): Int;
+    public var volume (default, set): Float;
     /** set it to true if you want the sound to loop */
     public var loop (default, set): Bool;
     /** get the length of the sound file in millisecond*/
