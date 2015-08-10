@@ -4,6 +4,7 @@
     <platform-config>
 
         <android>
+            <proguard path="proguard.cfg" />
             <java-source name="SOUND" path="java" />
         </android>
 
