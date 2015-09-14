@@ -20,7 +20,7 @@ class SoundTest extends TestCase
 
     public function testIfSoundSuccessfullyLoaded(): Void
     {
-        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + SOUND_URL;
+        var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + SOUND_URL;
         /// sound Callback
         function onSoundReady(loadedSound: Sound): Void
         {
@@ -33,7 +33,7 @@ class SoundTest extends TestCase
 
     public function testIfMusicSuccessfullyLoaded(): Void
     {
-        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + MUSIC_URL;
+        var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + MUSIC_URL;
         /// music Callback
         function onMusicReady(loadedMusic: Music): Void
         {
@@ -46,7 +46,7 @@ class SoundTest extends TestCase
 
     public function testMoreThanOneSoundFxPlayingInstantlyWithoutCrash(): Void
     {
-        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + SOUND_URL;
+        var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + SOUND_URL;
         var sounds: Array<Sound> = [];
         function playSounds(): Void
         {

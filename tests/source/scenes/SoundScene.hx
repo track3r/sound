@@ -211,8 +211,8 @@ class SoundScene extends Scene
 
     private function loadSound(filename: String, filename2: String): Void
     {
-        var fileUrl: String = FileSystem.instance().urlToStaticData() + "/" + filename;
-        var fileUrl2: String = FileSystem.instance().urlToStaticData() + "/" + filename2;
+        var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + filename;
+        var fileUrl2: String = FileSystem.instance().getUrlToStaticData() + "/" + filename2;
         
         Music.load(fileUrl2, function(m: Music)
         {

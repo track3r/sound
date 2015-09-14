@@ -30,9 +30,9 @@ class Sound
 
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
-        if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
+        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0)
         {
-            fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
+            fileUrl = fileUrl.substr(FileSystem.instance().getUrlToStaticData().length);
 
             var pos: Int = 0;
             while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
@@ -43,8 +43,8 @@ class Sound
 
             fileUrl = "assets/" + fileUrl;
         }
-        else if (fileUrl.indexOf(FileSystem.instance().urlToCachedData()) == 0 ||
-        fileUrl.indexOf(FileSystem.instance().urlToTempData()) == 0)
+        else if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0 ||
+        fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == 0)
         {
             throw "Sounds not supported outside the assets";
         }

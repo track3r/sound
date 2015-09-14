@@ -52,9 +52,9 @@ class Music
 
     private function new(fileUrl: String)
     {
-        if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
+        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0)
         {
-            fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
+            fileUrl = fileUrl.substr(FileSystem.instance().getUrlToStaticData().length);
 
             var pos: Int = 0;
             while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")

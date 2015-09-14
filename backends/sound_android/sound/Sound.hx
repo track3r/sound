@@ -46,10 +46,10 @@ class Sound
     {
         var isFromAssets: Bool = false;
 
-        if (fileUrl.indexOf(FileSystem.instance().urlToStaticData()) == 0)
+        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0)
         {
             isFromAssets = true;
-            fileUrl = fileUrl.substr(FileSystem.instance().urlToStaticData().length);
+            fileUrl = fileUrl.substr(FileSystem.instance().getUrlToStaticData().length);
 
             var pos: Int = 0;
             while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")

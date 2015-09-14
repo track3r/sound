@@ -8,7 +8,7 @@ package;
 
 import haxe.CallStack;
 import scenes.SoundScene;
-import duell.DuellKit;
+import duellkit.DuellKit;
 
 import game_engine.core.GameEngine;
 

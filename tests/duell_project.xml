@@ -3,15 +3,15 @@
 	<app file="soundExample" title="Sound Test" package="com.gameduell.tests.sound"
 		version="0.0.1" company="GameDuell GmbH" />
 
-	<main name="MainTest" />
-	<!-- <main name="Main" /> -->
+	<!-- <main name="MainTest" /> -->
+	<main name="Main" />
 
 	<source path="source" />
 
 	<duelllib name="sound" version="master"/>
-	<duelllib name="unittest" version="4.0.0+"/>
-	<duelllib name="game_engine" version="15.0.0+"/>
-	<duelllib name="game_engine_extensions" version="15.0.0+"/>
+	<duelllib name="unittest" version="5.0.0+"/>
+	<duelllib name="game_engine" version="19.0.0+"/>
+	<duelllib name="game_engine_extensions" version="19.0.0+"/>
 
     <platform-config>
     	<android>
