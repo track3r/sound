@@ -270,7 +270,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         }
         catch (IOException e)
         {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, "" + e.getMessage());
             return false;
         }
 
@@ -437,7 +437,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         }
         catch (IOException e)
         {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, "" + e.getMessage());
             return false;
         }
 
