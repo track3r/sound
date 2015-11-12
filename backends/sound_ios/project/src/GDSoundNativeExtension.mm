@@ -23,6 +23,17 @@ value *__musicStoppedPlaying = NULL;
 //
 // Utils
 //====================================================================
+///--------------------------------------------------------------------
+void soundios_setDeviceConfig()
+{
+    /// Do we want to keep the ipod music running or not?
+    [OALAudioSession sharedInstance].allowIpod = NO;
+
+    [OALAudioSession sharedInstance].honorSilentSwitch = YES;
+
+    // Deal with interruptions for me!
+    [OALAudioSession sharedInstance].handleInterruptions = YES;
+}
 
 /// convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
@@ -168,6 +179,7 @@ DEFINE_PRIM (soundios_registerCallback, 1);
 ///--------------------------------------------------------------------
 static value soundios_initialize(value soundPath, value currentSound)
 {
+    soundios_setDeviceConfig();
     filePath = valueToNSString(soundPath);
 
     // This loads the sound effects into memory so that
@@ -180,37 +192,6 @@ static value soundios_initialize(value soundPath, value currentSound)
     return alloc_null();
 }
 DEFINE_PRIM(soundios_initialize,2);
-///--------------------------------------------------------------------
-static value soundios_setDeviceConfig(value allowIpod, value honorSilentSwitch)
-{
-    bool _allowIpod = val_bool(allowIpod);
-    bool _honorSilentSwitch = val_bool(honorSilentSwitch);
-
-    /// Do we want to keep the ipod music running or not?
-    if(_allowIpod)
-    {
-        [OALAudioSession sharedInstance].allowIpod = YES;
-    }
-    else
-    {
-         [OALAudioSession sharedInstance].allowIpod = NO;
-    }
-
-     /// Mute all audio if the silent switch is turned on.
-    if(_honorSilentSwitch)
-    {
-        [OALAudioSession sharedInstance].honorSilentSwitch = YES;
-    }
-    else
-    {
-        [OALAudioSession sharedInstance].honorSilentSwitch = NO;
-    }
-
-    // Deal with interruptions for me!
-    [OALAudioSession sharedInstance].handleInterruptions = YES;
-    return alloc_null();
-}
-DEFINE_PRIM(soundios_setDeviceConfig,2);
 
 ///--------------------------------------------------------------------
 static value soundios_play(value filePath, value volume, value loop)
@@ -282,6 +263,7 @@ DEFINE_PRIM(soundios_getPosition,1);
 
 static value musicios_initialize(value filePath, value currentMusic)
 {
+    soundios_setDeviceConfig();
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
