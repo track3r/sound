@@ -237,6 +237,11 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private boolean prepareSound(final Sound sound, final boolean shouldPlay)
     {
+        // recreate sfxPool if needed, we're in a recoverable state
+        if (sfxPool == null) {
+            create();
+        }
+
         String fileUrl = sound.getFileUrl();
 
         try
@@ -279,6 +284,11 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     public void playSound(Sound sound)
     {
+        // recreate sfxPool if needed, we're in a recoverable state
+        if (sfxPool == null) {
+            create();
+        }
+
         // we may not have focus, so we have to acquire it briefly
         FocusManager.requestTemporary(this);
 
@@ -304,61 +314,71 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     {
         Log.d(TAG, "Stopping sound: " + sound.getId());
 
-        int[] streams = findSoundInStreams(sound.getId());
+        if (sfxPool != null) {
+            int[] streams = findSoundInStreams(sound.getId());
 
-        for (int stream : streams)
-        {
-            if (stream > 0)
+            for (int stream : streams)
             {
-                sfxPool.stop(stream);
-                // no point in deleting the stream, just set the sound with an invalid ID
-                soundStreams.put(stream, -1);
-                // stream is not paused
-                soundStreamsPaused.put(stream, false);
+                if (stream > 0)
+                {
+                    sfxPool.stop(stream);
+                    // no point in deleting the stream, just set the sound with an invalid ID
+                    soundStreams.put(stream, -1);
+                    // stream is not paused
+                    soundStreamsPaused.put(stream, false);
+                }
             }
         }
     }
 
     public void pauseSound(Sound sound)
     {
-        int[] streams = findSoundInStreams(sound.getId());
-
-        for (int stream : streams)
+        if (sfxPool != null)
         {
-            if (stream > 0)
+            int[] streams = findSoundInStreams(sound.getId());
+
+            for (int stream : streams)
             {
-                sfxPool.pause(stream);
-                // stream is now paused, don't update the soundStreams array
-                soundStreamsPaused.put(stream, true);
+                if (stream > 0)
+                {
+                    sfxPool.pause(stream);
+                    // stream is now paused, don't update the soundStreams array
+                    soundStreamsPaused.put(stream, true);
+                }
             }
         }
     }
 
     public void resumeSound(Sound sound)
     {
-        int[] streams = findSoundInStreams(sound.getId());
+        if (sfxPool != null) {
+            int[] streams = findSoundInStreams(sound.getId());
 
-        for (int stream : streams)
-        {
-            if (stream > 0 && soundStreamsPaused.get(stream, false))
+            for (int stream : streams)
             {
-                // if the sound was found and the stream corresponding to the sound is paused, resume it
-                sfxPool.resume(stream);
-                // update the stream state back to unpaused (playing)
-                soundStreamsPaused.put(stream, false);
+                if (stream > 0 && soundStreamsPaused.get(stream, false))
+                {
+                    // if the sound was found and the stream corresponding to the sound is paused, resume it
+                    sfxPool.resume(stream);
+                    // update the stream state back to unpaused (playing)
+                    soundStreamsPaused.put(stream, false);
+                }
             }
         }
     }
 
     public void setSoundVolume(Sound sound, float volume)
     {
-        int[] streams = findSoundInStreams(sound.getId());
-
-        for (int stream : streams)
+        if (sfxPool != null)
         {
-            if (stream > 0)
+            int[] streams = findSoundInStreams(sound.getId());
+
+            for (int stream : streams)
             {
-                sfxPool.setVolume(stream, volume, volume);
+                if (stream > 0)
+                {
+                    sfxPool.setVolume(stream, volume, volume);
+                }
             }
         }
     }
