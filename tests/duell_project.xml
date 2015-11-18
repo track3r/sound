@@ -10,8 +10,8 @@
 
 	<duelllib name="sound" version="master"/>
 	<duelllib name="unittest" version="5.0.0+"/>
-	<duelllib name="game_engine" version="19.0.0+"/>
-	<duelllib name="game_engine_extensions" version="19.0.0+"/>
+	<duelllib name="game_engine" version="20.0.0+"/>
+	<duelllib name="game_engine_extensions" version="20.0.0+"/>
 
     <platform-config>
     	<android>
