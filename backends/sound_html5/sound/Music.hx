@@ -27,6 +27,7 @@ class Music
         isPaused = false;
         loop = false;
         volume = 1.0;
+        onPlaybackComplete = new Signal1();
     }
 
     public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void

@@ -68,6 +68,7 @@ class Music
         javaMusic = createNative(this, fileUrl);
 
         volume = 1.0;
+        onPlaybackComplete = new Signal1();
     }
 
     private function preload(): Void
