@@ -9,6 +9,7 @@
     <include path="backends/sound_android/duell_library.xml" if="android" />
     <include path="backends/sound_ios/duell_library.xml" if="ios" />
     <include path="backends/sound_flash/duell_library.xml" if="flash" />
+    <include path="backends/sound_empty/duell_library.xml" unless="html5||android||ios||flash" />
 
     <platform-config>
         <documentation>
