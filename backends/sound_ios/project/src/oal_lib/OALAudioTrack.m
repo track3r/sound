@@ -62,7 +62,7 @@
  * @param url the URL containing the sound file.
  * @param target the target to inform when the operation completes.
  * @param selector the selector to call when the operation completes.
- */ 
+ */
 + (id) operationWithTrack:(OALAudioTrack*) track url:(NSURL*) url seekTime:(NSTimeInterval)seekTime target:(id) target selector:(SEL) selector;
 
 /** (INTERNAL USE) Initialize an Asynchronous Operation.
@@ -72,7 +72,7 @@
  * @param url the URL containing the sound file.
  * @param target the target to inform when the operation completes.
  * @param selector the selector to call when the operation completes.
- */ 
+ */
 - (id) initWithTrack:(OALAudioTrack*) track url:(NSURL*) url seekTime:(NSTimeInterval)seekTime target:(id) target selector:(SEL) selector;
 
 @end
@@ -225,7 +225,7 @@
 	if(nil != (self = [super init]))
 	{
 		OAL_LOG_DEBUG(@"%@: Init", self);
-		
+
 		suspendHandler = [[OALSuspendHandler alloc] initWithTarget:self selector:@selector(setSuspended:)];
 
 		operationQueue = [[NSOperationQueue alloc] init];
@@ -233,7 +233,7 @@
 		gain = 1.0f;
 		numberOfLoops = 0;
 		currentTime = 0.0;
-		
+
 		[[OALAudioTracks sharedInstance] notifyTrackInitializing:self];
 		[[OALAudioTracks sharedInstance] addSuspendListener:self];
 	}
@@ -370,11 +370,14 @@
 	{
 		if(paused != value)
 		{
-			paused = value;
+		  paused = value;
 			if(paused)
 			{
 				OAL_LOG_DEBUG(@"%@: Pause", self);
-				[player pause];
+				if (nil != player)
+				{
+				  [player pause];
+				}
 				if(playing)
 				{
 					[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:)
@@ -543,7 +546,7 @@
                     paused = NO;
                     return;
                 }
-                
+
                 if(playing)
                 {
                     playing = [player play];
@@ -554,8 +557,8 @@
                 }
             }
         }
-        
-        
+
+
         /*
         if(value)
         {
@@ -592,16 +595,16 @@
 		OAL_LOG_ERROR(@"%@: Cannot open NULL file / url", self);
 		return NO;
 	}
-	
+
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		// Bug: No longer re-using AVAudioPlayer because of bugs when using multiple players.
 		// Playing two tracks, then stopping one and starting it again will cause prepareToPlay to fail.
-		
+
 		bool wasPlaying = playing;
 
 		[self stopActions];
-		
+
 		if(playing || paused)
 		{
 			[player stop];
@@ -613,7 +616,7 @@
 		{
 			[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:[NSNotification notificationWithName:OALAudioTrackStoppedPlayingNotification object:self] waitUntilDone:NO];
 		}
-		
+
 		NSError* error;
 		player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
 		if(nil == player)
@@ -621,7 +624,7 @@
 			OAL_LOG_ERROR(@"%@: Could not load URL %@: %@", self, url, [error localizedDescription]);
 			return NO;
 		}
-		
+
 		player.volume = muted ? 0 : gain;
 		player.numberOfLoops = numberOfLoops;
 		player.meteringEnabled = meteringEnabled;
@@ -630,7 +633,7 @@
 
 		as_release(currentlyLoadedUrl);
 		currentlyLoadedUrl = as_retain(url);
-		
+
 		self.currentTime = seekTime;
 		playing = NO;
 		paused = NO;
@@ -794,7 +797,7 @@
 		{
 			[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:[NSNotification notificationWithName:OALAudioTrackStoppedPlayingNotification object:self] waitUntilDone:NO];
 		}
-		
+
 		self.currentTime = 0;
 		player.currentTime = 0;
 		paused = NO;
@@ -875,7 +878,7 @@
 		[self stopActions];
 		as_release(currentlyLoadedUrl);
 		currentlyLoadedUrl = nil;
-		
+
 		[player stop];
 		as_release(player);
 		player = nil;
@@ -887,7 +890,7 @@
 		{
 			[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:[NSNotification notificationWithName:OALAudioTrackStoppedPlayingNotification object:self] waitUntilDone:NO];
 		}
-		
+
 		self.currentTime = 0;
 	}
 }
@@ -998,7 +1001,7 @@
 	{
 		[delegate audioPlayerDidFinishPlaying:playerIn successfully:flag];
 	}
-	
+
 	[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:) withObject:[NSNotification notificationWithName:OALAudioTrackFinishedPlayingNotification object:self] waitUntilDone:NO];
 }
 
