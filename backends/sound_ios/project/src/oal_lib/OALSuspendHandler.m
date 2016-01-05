@@ -116,7 +116,7 @@
 	 * suspend states so that it can intelligently decide whether to unsuspend or
 	 * not.
 	 */
-	
+
 	@synchronized(self)
 	{
 		// Setting must occur in the opposite order to clearing.
@@ -126,14 +126,14 @@
 			for(NSUInteger index = 0; index < numListeners; index++)
 			{
 				id<OALSuspendListener> listener = [listeners objectAtIndex:index];
-				
+
 				// Record whether they were already suspended or not
 				bool alreadySuspended = listener.manuallySuspended;
 				if(alreadySuspended != [[manualSuspendStates objectAtIndex:index] boolValue])
 				{
 					[manualSuspendStates replaceObjectAtIndex:index withObject:[NSNumber numberWithBool:alreadySuspended]];
 				}
-				
+
 				// Update listener suspend state if necessary
 				if(!alreadySuspended)
 				{
@@ -151,26 +151,32 @@
 			manualSuspendLock = value;
 			if(!interruptLock)
 			{
-				if(nil != suspendStatusChangeTarget)
+				// Assign weak member var to a local var to prevent deallocation within this block
+				id localSuspendStatusChangeTarget = suspendStatusChangeTarget;
+				if(nil != localSuspendStatusChangeTarget)
 				{
-                    if([suspendStatusChangeTarget respondsToSelector:suspendStatusChangeSelector])
-                    {
-                        id (*method)(id, SEL, bool)  = (id (*)(id, SEL, bool))[suspendStatusChangeTarget methodForSelector:suspendStatusChangeSelector];
-                        method(suspendStatusChangeTarget, suspendStatusChangeSelector, manualSuspendLock);
-                    }
+						if([localSuspendStatusChangeTarget respondsToSelector:suspendStatusChangeSelector])
+						{
+								NSMethodSignature *signature = [[localSuspendStatusChangeTarget class] instanceMethodSignatureForSelector:suspendStatusChangeSelector];
+								NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+								[invocation setTarget:localSuspendStatusChangeTarget];
+								[invocation setSelector:suspendStatusChangeSelector];
+								[invocation setArgument:&manualSuspendLock atIndex:2];
+								[invocation invoke];
+						}
 				}
 			}
 		}
-		
+
 		// Ensure clearing occurs in opposing order
 		if(!value)
 		{
 			for(int index = (int)[listeners count] - 1; index >= 0; index--)
 			{
 				id<OALSuspendListener> listener = [listeners objectAtIndex:(NSUInteger)index];
-				
+
 				bool alreadySuspended = [[manualSuspendStates objectAtIndex:(NSUInteger)index] boolValue];
-				
+
 				// Update listener suspend state if necessary
 				if(!alreadySuspended && listener.manuallySuspended)
 				{
@@ -210,7 +216,7 @@
 				}
 			}
 		}
-		
+
 		/* If the new value is the same as the old, do nothing.
 		 * If the other lock is set, do nothing.
 		 * Otherwise, send a suspend/unsuspend event to the slave.
@@ -220,15 +226,24 @@
 			interruptLock = value;
 			if(!manualSuspendLock)
 			{
-				if(nil != suspendStatusChangeTarget)
+				// Assign weak member variable to a local var to prevent deallocation within this block
+				id localSuspendStatusChangeTarget = suspendStatusChangeTarget;
+
+				if(nil != localSuspendStatusChangeTarget)
 				{
-                    void (*suspendStatusChange)(id, SEL, bool);
-                    suspendStatusChange = (void (*)(id, SEL, bool))[suspendStatusChangeTarget methodForSelector:suspendStatusChangeSelector];
-                    suspendStatusChange(suspendStatusChangeTarget, suspendStatusChangeSelector, interruptLock);
+						if([localSuspendStatusChangeTarget respondsToSelector:suspendStatusChangeSelector])
+						{
+								NSMethodSignature *signature = [[localSuspendStatusChangeTarget class] instanceMethodSignatureForSelector:suspendStatusChangeSelector];
+								NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+								[invocation setTarget:localSuspendStatusChangeTarget];
+								[invocation setSelector:suspendStatusChangeSelector];
+								[invocation setArgument:&interruptLock atIndex:2];
+								[invocation invoke];
+						}
 				}
 			}
 		}
-		
+
 		// Ensure clearing occurs in opposing order
 		if(!value)
 		{

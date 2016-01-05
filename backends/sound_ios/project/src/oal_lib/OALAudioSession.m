@@ -48,7 +48,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS_PROTOTYPE(OALAudioSession);
 
 /** \cond */
 /**
- * (INTERNAL USE) Private methods for OALAudioSupport. 
+ * (INTERNAL USE) Private methods for OALAudioSupport.
  */
 @interface OALAudioSession (Private)
 
@@ -177,9 +177,9 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
     {
         OAL_LOG_ERROR(@"Could not deactivate audio session: %@", error);
     }
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	as_release(lastResetTime);	
+	as_release(lastResetTime);
 	as_release(audioSessionCategory);
 	as_release(suspendHandler);
 	as_superdealloc();
@@ -201,7 +201,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 		audioSessionCategory = as_retain(value);
 		[self updateFromAudioSessionCategory];
 		[self setAudioMode];
-	}	
+	}
 }
 
 - (bool) allowIpod
@@ -380,7 +380,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 
 - (BOOL) _otherAudioPlaying
 {
-    if([IOSVersion version] < 6)
+    if([IOSVersion sharedInstance].version < 6)
     {
         return self.ipodPlaying;
     }
@@ -438,7 +438,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 	{
 		OAL_LOG_WARNING(@"%@: Unrecognized audio session category", audioSessionCategory);
 	}
-	
+
 }
 
 - (void) updateFromFlags
@@ -465,41 +465,41 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 {
 	// Simulator doesn't support setting the audio session category.
 #if !TARGET_IPHONE_SIMULATOR
-	
+
 	NSString* actualCategory = audioSessionCategory;
-	
+
 	// Mixing uses software decoding and mixes with other apps.
 	bool mixing = allowIpod;
-	
+
 	// Ducking causes other app audio to lower in volume while this session is active.
 	bool ducking = ipodDucking;
-	
+
 	// If the hardware is available and we want it, take it.
 	if(mixing && useHardwareIfAvailable && !self._otherAudioPlaying)
 	{
 		mixing = NO;
 	}
-	
+
 	// Handle special case where useHardwareIfAvailable caused us to take the hardware.
 	if(!mixing && [AVAudioSessionCategoryAmbient isEqualToString:audioSessionCategory])
 	{
 		actualCategory = AVAudioSessionCategorySoloAmbient;
 	}
-	
+
 	[self setAudioCategory:actualCategory];
-	
+
 	if(!mixing)
 	{
 		// Setting OtherMixableAudioShouldDuck clears MixWithOthers.
 		[self setIntProperty:kAudioSessionProperty_OtherMixableAudioShouldDuck value:ducking];
 	}
-	
+
 	if(!ducking)
 	{
 		// Setting MixWithOthers clears OtherMixableAudioShouldDuck.
 		[self setIntProperty:kAudioSessionProperty_OverrideCategoryMixWithOthers value:mixing];
 	}
-	
+
 #endif /* !TARGET_IPHONE_SIMULATOR */
 }
 
@@ -510,7 +510,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 
 /** Work around for iOS4 bug that causes the session to not activate on the first few attempts
  * in certain situations.
- */ 
+ */
 - (void) activateAudioSession
 {
 	NSError* error;
@@ -551,7 +551,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 				{
 					audioSessionActive = NO;
 				}
-				
+
 			}
 		}
 	}
@@ -574,13 +574,13 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 		if(timeSinceLastReset > kMinTimeIntervalBetweenResets && !handlingErrorNotification)
 		{
             handlingErrorNotification = TRUE;
-            
+
 			OAL_LOG_WARNING(@"Received audio error notification. Resetting audio session.");
 			self.manuallySuspended = YES;
 			self.manuallySuspended = NO;
 			as_release(lastResetTime);
 			lastResetTime = [[NSDate alloc] init];
-		
+
             handlingErrorNotification = FALSE;
         }
 		else
@@ -681,7 +681,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 		{
 			self.interrupted = YES;
 		}
-		
+
 		if([audioSessionDelegate respondsToSelector:@selector(beginInterruption)])
 		{
 			[audioSessionDelegate beginInterruption];
@@ -701,7 +701,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 			informDelegate = self.interrupted;
 			self.interrupted = NO;
 		}
-		
+
 		if(informDelegate)
 		{
 			if([audioSessionDelegate respondsToSelector:@selector(endInterruption)])
@@ -718,13 +718,13 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 	@synchronized(self)
 	{
 		bool informDelegate = YES;
-		
+
 		if(handleInterruptions)
 		{
 			informDelegate = self.interrupted;
 			self.interrupted = NO;
 		}
-		
+
 		if(informDelegate)
 		{
 			if([audioSessionDelegate respondsToSelector:@selector(endInterruptionWithFlags:)])
@@ -744,13 +744,13 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 	@synchronized(self)
 	{
 		bool informDelegate = YES;
-		
+
 		if(handleInterruptions)
 		{
 			informDelegate = self.interrupted;
 			self.interrupted = NO;
 		}
-		
+
 		if(informDelegate)
 		{
 			if([audioSessionDelegate respondsToSelector:@selector(endInterruption)])
