@@ -1,6 +1,6 @@
 /**
  * @author kgar
- * @date  28/04/15 
+ * @date  28/04/15
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
@@ -22,6 +22,10 @@ extern class Music
 
     /** dispatches when the music finishes playing or stopped*/
     public var onPlaybackComplete (default, null): Signal1<Music>;
+
+    /** set it to true if you want the native player to be used instead of our music.
+        default value is true.*/
+    public static var allowNativePlayer(default, set): Bool;
 
     /** constructor nothing fancy */
     private function new(fileUrl: String);

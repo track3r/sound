@@ -16,8 +16,6 @@ import org.haxe.duell.DuellActivity;
 @TargetApi(Build.VERSION_CODES.FROYO)
 public final class FocusManager
 {
-    private static boolean globalFocusRequested = false;
-
     private FocusManager()
     {
         // can't be instantiated
@@ -26,9 +24,8 @@ public final class FocusManager
     public static void request(final AudioManager.OnAudioFocusChangeListener listener)
     {
         // if music is not playing don't request the global focus
-        if (isMusicPlaying())
+        if (!isMusicPlaying())
         {
-            globalFocusRequested = false;
             return;
         }
 
@@ -39,19 +36,6 @@ public final class FocusManager
             AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
             audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN);
-            globalFocusRequested = true;
-        }
-    }
-
-    public static void requestTemporary(final AudioManager.OnAudioFocusChangeListener listener)
-    {
-        DuellActivity activity = DuellActivity.getInstance();
-
-        if (activity != null && !globalFocusRequested)
-        {
-            AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
-            audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
         }
     }
 
@@ -63,20 +47,10 @@ public final class FocusManager
         {
             AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
             audioManager.abandonAudioFocus(listener);
-            globalFocusRequested = false;
         }
     }
 
-    public static void onSoundComplete(final AudioManager.OnAudioFocusChangeListener listener)
-    {
-        // release temporary focus, since we just wanted to acquire it briefly
-        if (!globalFocusRequested)
-        {
-            release(listener);
-        }
-    }
-
-    private static boolean isMusicPlaying()
+    public static boolean isMusicPlaying()
     {
         DuellActivity activity = DuellActivity.getInstance();
 

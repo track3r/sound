@@ -8,6 +8,7 @@ import android.util.Log;
 import org.haxe.duell.hxjni.HaxeObject;
 import org.haxe.duell.sound.listener.OnSoundCompleteListener;
 import org.haxe.duell.sound.listener.OnSoundReadyListener;
+import org.haxe.duell.sound.manager.FocusManager;
 import org.haxe.duell.sound.manager.SoundManager;
 
 /**
@@ -29,6 +30,9 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     private boolean playAfterPreload;
 
+    private static boolean allowNativePlayer = true;
+    private static boolean isNativePlayerPlaying;
+
     public static Music create(final HaxeObject haxeObject, final String fileUrl)
     {
         return new Music(haxeObject, fileUrl);
@@ -42,6 +46,9 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
         duration = -1;
         volume = 1.0f;
         looped = false;
+
+        // In order to know if the native player was playing a music before our SoundManger is initialized
+        isNativePlayerPlaying = FocusManager.isMusicPlaying();
 
         unload();
 
@@ -65,6 +72,11 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     public void playMusic()
     {
+        if (allowNativePlayer && isNativePlayerPlaying)
+        {
+            return;
+        }
+
         Log.d(TAG, "Music playing");
 
         if (state == SoundState.UNLOADED)
@@ -139,6 +151,18 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
         {
             // update immediately if the sound is loaded
             SoundManager.getSharedInstance().setMusicLoop(looped);
+        }
+    }
+
+    public static void setAllowNativePlayer(final boolean _allowNativePlayer)
+    {
+        allowNativePlayer = _allowNativePlayer;
+
+        if (!allowNativePlayer)
+        {
+            // if native player is not allow it shall be silenced
+            isNativePlayerPlaying = false;
+            SoundManager.getSharedInstance().requestFocus();
         }
     }
 

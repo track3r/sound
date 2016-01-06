@@ -28,6 +28,8 @@ class Music
     "setVolume", "(F)V");
     private static var setLoopedNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
     "setLooped", "(Z)V");
+    private static var setAllowNativePlayerNative = JNI.createStaticMethod("org/haxe/duell/sound/Music",
+    "setAllowNativePlayer", "(Z)V");
     private static var getDurationNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
     "getDuration", "()F");
     private static var getPositionNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
@@ -42,6 +44,8 @@ class Music
     public var length(get, never): Float;
     public var position(get, never): Float;
     public var onPlaybackComplete(default, null): Signal1<Music>;
+
+    public static var allowNativePlayer(default, set_allowNativePlayer): Bool;
 
     public static function load(fileUrl: String, loadCallback: Music -> Void): Void
     {
@@ -112,6 +116,17 @@ class Music
         }
 
         return loop;
+    }
+
+    public static function set_allowNativePlayer(value: Bool): Bool
+    {
+        if (allowNativePlayer != value)
+        {
+            allowNativePlayer = value;
+            setAllowNativePlayerNative(value);
+        }
+
+        return allowNativePlayer;
     }
 
     public function get_length(): Float
