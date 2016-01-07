@@ -123,8 +123,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         });
 
         reset();
-
-        FocusManager.request(this);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -288,9 +286,6 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         if (sfxPool == null) {
             create();
         }
-
-        // we may not have focus, so we have to acquire it briefly
-        FocusManager.requestTemporary(this);
 
         if (sound.isReady())
         {
@@ -496,6 +491,11 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     public void playMusic(final Music music)
     {
+        if (playerState == MediaPlayerState.STARTED)
+        {
+            return;
+        }
+
         FocusManager.request(this);
 
         // recreate player if needed, we're in a recoverable state
@@ -533,16 +533,14 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         setMusicVolume(music.getVolume());
         player.start();
 
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
-        {
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void onCompletion(MediaPlayer mp)
-            {
-                FocusManager.onSoundComplete(SoundManager.this);
-
+            public void onCompletion(MediaPlayer mp) {
                 playerState = MediaPlayerState.PLAYBACK_COMPLETED;
 
                 music.onSoundComplete();
+
+                FocusManager.release(SoundManager.this);
             }
         });
     }
@@ -618,5 +616,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     {
         return playerState == MediaPlayerState.PREPARED || playerState == MediaPlayerState.STARTED ||
                 playerState == MediaPlayerState.PAUSED || playerState == MediaPlayerState.PLAYBACK_COMPLETED;
+    }
+
+    public void requestFocus()
+    {
+        FocusManager.request(this);
     }
 }

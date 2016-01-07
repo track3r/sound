@@ -1,6 +1,6 @@
 /**
- * @author kgar 
- * @date 06/10/14 
+ * @author kgar
+ * @date 06/10/14
  * @company Gameduell GmbH
  */
 package scenes;
@@ -8,13 +8,19 @@ package scenes;
 import sound.Music;
 import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
+import game_engine.components.text.BMFontTextGenerator;
+import game_engine.systems.TextSystem;
 import game_engine.systems.RelationSystem;
 import game_engine.systems.Camera2DSystem;
 import game_engine.systems.Transform2DSystem;
 import game_engine.systems.Sprite2DSystem;
+import game_engine.components.ui.CheckBoxStateConfig;
+import game_engine.systems.ui.CheckBoxSystem;
 import game_engine.systems.ui.SimpleButtonSystem;
 import game_engine_extensions.dragging.components.DragComponent;
 import game_engine_extensions.dragging.systems.DragSystem;
+import game_engine.core.CheckBox;
+import game_engine.core.Text;
 import game_engine.core.SimpleButton;
 import renderer.texture.Texture2D;
 import game_engine.core.Scene;
@@ -44,6 +50,14 @@ class SoundScene extends Scene
     private static var pauseBtnDownTexture: Texture2D;
     private static var pauseBtnOverTexture: Texture2D;
 
+    ///nativePlayerBtn Textures
+    private static var nativePlayerUpUnCheckedTexture: Texture2D;
+    private static var nativePlayerUpCheckedTexture: Texture2D;
+    private static var nativePlayerDownUnCheckedTexture: Texture2D;
+    private static var nativePlayerDownCheckedTexture: Texture2D;
+    private static var nativePlayerDisableUnCheckedTexture: Texture2D;
+    private static var nativePlayerDisableCheckedTexture: Texture2D;
+
     ///buttons
     private static var playBtn: SimpleButton;
     private static var stopBtn: SimpleButton;
@@ -55,6 +69,9 @@ class SoundScene extends Scene
 
     private static var volumeBtn: SimpleButton;
 
+    ///checkboxes
+    private static var nativePlayerCheckBox: CheckBox;
+
     //sound
     private var soundTrack: Sound;
     private var music: Music;
@@ -62,6 +79,7 @@ class SoundScene extends Scene
     override public function initScene(): Void
     {
         createTextures();
+        createCheckBox();
         registerSystems();
     }
 
@@ -82,6 +100,14 @@ class SoundScene extends Scene
         pauseBtnUpTexture = AssetManager.getTexture2D("pauseBtn_up.png");
         pauseBtnDownTexture = AssetManager.getTexture2D("pauseBtn_down.png");
         pauseBtnOverTexture = AssetManager.getTexture2D("pauseBtn_over.png");
+
+        ///nativePlayerCheckBox textures
+        nativePlayerUpUnCheckedTexture = AssetManager.getTexture2D("testCheckBoxUpUnChecked.png");
+        nativePlayerUpCheckedTexture = AssetManager.getTexture2D("testCheckBoxUpChecked.png");
+        nativePlayerDownUnCheckedTexture = AssetManager.getTexture2D("testCheckBoxDownUnChecked.png");
+        nativePlayerDownCheckedTexture = AssetManager.getTexture2D("testCheckBoxDownChecked.png");
+        nativePlayerDisableUnCheckedTexture = AssetManager.getTexture2D("testCheckBoxDisableUnChecked.png");
+        nativePlayerDisableCheckedTexture = AssetManager.getTexture2D("testCheckBoxDisableChecked.png");
 
         voleumeButtonTexture = AssetManager.getTexture2D("volume.png");
     }
@@ -190,17 +216,56 @@ class SoundScene extends Scene
         });
     }
 
+    private function createCheckBox(): Void
+    {
+        nativePlayerCheckBox = new CheckBox(nativePlayerUpCheckedTexture, nativePlayerUpUnCheckedTexture,
+        nativePlayerDownCheckedTexture, nativePlayerDownUnCheckedTexture,
+        nativePlayerDisableCheckedTexture, nativePlayerDisableUnCheckedTexture);
+
+        var checkBoxStateConfig: CheckBoxStateConfig = new CheckBoxStateConfig();
+        checkBoxStateConfig.resize = false;
+        nativePlayerCheckBox.settings.stateConfigAll = checkBoxStateConfig;
+
+        nativePlayerCheckBox.size.width = 34;
+        nativePlayerCheckBox.size.height = 34;
+        nativePlayerCheckBox.transform.x = 350;
+        nativePlayerCheckBox.transform.y = 190;
+        nativePlayerCheckBox.transform.anchorPoint = 1.0;
+
+        Music.allowNativePlayer = true;
+        nativePlayerCheckBox.settings.onCheckBoxChanged.add(function(entity: Entity, checked: Bool)
+        {
+            Music.allowNativePlayer = checked;
+        });
+
+        root.addChild(nativePlayerCheckBox);
+
+        var bmFontTextGenerator: BMFontTextGenerator = AssetManager.createBMFontTextGenerator("Fonts/Arial_Black_Raw.fnt");
+        var checkBoxLabel: Text = new Text(bmFontTextGenerator);
+        checkBoxLabel.transform.anchorPoint = 0.5;
+        checkBoxLabel.size.width = 64;
+        checkBoxLabel.size.height = 64;
+        checkBoxLabel.transform.scale = 0.5;
+        checkBoxLabel.transform.x = 170;
+        checkBoxLabel.transform.y = 170;
+        checkBoxLabel.settings.text = "Native player:";
+
+        root.addChild(checkBoxLabel);
+    }
+
     private function registerSystems(): Void
     {
         // Object Creation Systems
         root.engine.addSystem(new SimpleButtonSystem(), 0);
-        root.engine.addSystem(new Sprite2DSystem(), 1);
+        root.engine.addSystem(new CheckBoxSystem(), 1);
+        root.engine.addSystem(new Sprite2DSystem(), 2);
+        root.engine.addSystem(new TextSystem(), 3);
 
         // Processing Systems
-        root.engine.addSystem(new DragSystem(), 3);
-        root.engine.addSystem(new Transform2DSystem(), 4);
-        root.engine.addSystem(new RelationSystem(), 5);
-        root.engine.addSystem(new Camera2DSystem(), 6);
+        root.engine.addSystem(new DragSystem(), 4);
+        root.engine.addSystem(new Transform2DSystem(), 5);
+        root.engine.addSystem(new RelationSystem(), 6);
+        root.engine.addSystem(new Camera2DSystem(), 7);
     }
 
     override public function sceneWillAppear(): Void
@@ -213,7 +278,7 @@ class SoundScene extends Scene
     {
         var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + filename;
         var fileUrl2: String = FileSystem.instance().getUrlToStaticData() + "/" + filename2;
-        
+
         Music.load(fileUrl2, function(m: Music)
         {
             trace("Music Loaded");

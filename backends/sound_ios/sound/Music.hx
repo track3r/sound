@@ -22,6 +22,8 @@ class Music
     public var nativeMusicChannel: Dynamic;
     public var onPlaybackComplete(default,null): Signal1<Music>;
 
+    public static var allowNativePlayer(default, set_allowNativePlayer): Bool = true;
+
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","musicios_registerCallback",2);
     private static var initializeNativeFunc = Lib.load("soundios","musicios_initialize",1);
@@ -30,9 +32,10 @@ class Music
     private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",2);
     private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",2);
+    private static var setAllowNativePlayerNativeFunc = Lib.load("soundios","musicios_setAllowNativePlayer",1);
+    private static var getIsOtherAudioPlaying = Lib.load("soundios","musicios_isOtherAudioPlaying",0);
     private static var getLengthNative = Lib.load("soundios","musicios_getLength",1);
     private static var getPositionNative = Lib.load("soundios","musicios_getPosition",1);
-
 
     private var isPaused:Bool = false;
 
@@ -75,6 +78,11 @@ class Music
     }
     public function play(): Void
     {
+        if (allowNativePlayer && isNativePlayerPlaying())
+        {
+            return;
+        }
+
         if(isPaused && nativeMusicChannel != null)
         {
             /// if it is paused we just resume
@@ -113,6 +121,11 @@ class Music
         }
     }
 
+    public static function isNativePlayerPlaying(): Bool
+    {
+        return getIsOtherAudioPlaying();
+    }
+
     /// here you can do platform specific logic to set the sound volume
     private function set_volume(value: Float): Float
     {
@@ -129,6 +142,17 @@ class Music
     {
         loop = value;
         return loop;
+    }
+
+    private static function set_allowNativePlayer(value: Bool): Bool
+    {
+        if (allowNativePlayer != value)
+        {
+            allowNativePlayer = value;
+            setAllowNativePlayerNativeFunc(allowNativePlayer);
+        }
+
+        return allowNativePlayer;
     }
 
     /// get the length of the current sound

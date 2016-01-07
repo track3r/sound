@@ -19,6 +19,10 @@ NSString *filePath;
 OALAudioTrack* musicTrack;
 value *__musicLoadComplete = NULL;
 value *__musicStoppedPlaying = NULL;
+
+/// Native player
+bool __allowNativePlayer = true;
+
 //====================================================================
 //
 // Utils
@@ -27,8 +31,12 @@ value *__musicStoppedPlaying = NULL;
 void soundios_setDeviceConfig()
 {
     /// Do we want to keep the ipod music running or not?
-    [OALAudioSession sharedInstance].allowIpod = NO;
+    [OALAudioSession sharedInstance].allowIpod = __allowNativePlayer;
 
+    /// If YES no other application will be able to start playing audio if it wasn't playing already.
+    [OALAudioSession sharedInstance].useHardwareIfAvailable = NO;
+
+    /// If true, mute when backgrounded, screen locked, or the ringer switch is turned off
     [OALAudioSession sharedInstance].honorSilentSwitch = YES;
 
     // Deal with interruptions for me!
@@ -71,10 +79,10 @@ void unregisterNotification(OALAudioTrack* track)
 /** Creating Sound Haxe Pointer*/
 DEFINE_KIND(k_SoundFileHandle);
 static void soundFinalizer(value abstract_object)
-{ 
+{
      NSString* s = (NSString *)val_data(abstract_object);
      [s release];
-} 
+}
 static value createHaxePointerForSoundHandle(NSString *soundFilePath)
 {
     [soundFilePath retain];
@@ -85,17 +93,16 @@ static value createHaxePointerForSoundHandle(NSString *soundFilePath)
     return v;
 }
 
-
 static NSString* getSoundFileHandleFromHaxePointer(value soundPath)
 {
     return (NSString *)val_data(soundPath);
 }
 DEFINE_KIND(k_SoundChannelHandle);
 static void soundChannelFinalizer(value abstract_object)
-{ 
+{
      id<ALSoundSource> s = (id<ALSoundSource>)val_data(abstract_object);
      [s release];
-} 
+}
 
 static value createHaxePointerForSoundChannelHandle(id<ALSoundSource> soundChannel)
 {
@@ -187,7 +194,7 @@ static value soundios_initialize(value soundPath, value currentSound)
     ALBuffer* buffer = [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
 
     value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
-    
+
     val_call2(*__soundLoadComplete, hxSoundHandle, alloc_float(buffer.duration * 1000));
     return alloc_null();
 }
@@ -199,7 +206,7 @@ static value soundios_play(value filePath, value volume, value loop)
     id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance]
                                    playEffect:(NSString*)val_data(filePath)
                                    volume:val_float(volume) pitch:1.0f pan:0.0f loop:val_bool(loop)];
-    
+
     return createHaxePointerForSoundChannelHandle(soundSrc);
 }
 DEFINE_PRIM(soundios_play,3);
@@ -312,6 +319,7 @@ static value musicios_play(value filePath, value volume, value loop)
 
     [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
     musicTrack.volume = val_float(volume);
+
     return createHaxePointerForMusicChannelHandle(musicTrack);
 }
 DEFINE_PRIM(musicios_play,3);
@@ -328,6 +336,7 @@ DEFINE_PRIM(musicios_stop,1);
 static value musicios_pause(value musicSrc, value pause)
 {
     getMusicChannelFromHaxePointer(musicSrc).paused = (bool)val_bool(pause);
+
     return alloc_null();
 }
 DEFINE_PRIM(musicios_pause,2);
@@ -347,6 +356,24 @@ static value musicios_setMute(value musicSrc, value mute)
     return alloc_null();
 }
 DEFINE_PRIM(musicios_setMute,2);
+
+///--------------------------------------------------------------------
+static value musicios_setAllowNativePlayer(value allowNativePlayer)
+{
+    __allowNativePlayer = val_bool(allowNativePlayer);
+
+    [OALAudioSession sharedInstance].allowIpod = __allowNativePlayer;
+
+    return alloc_null();
+}
+DEFINE_PRIM(musicios_setAllowNativePlayer,1);
+
+///--------------------------------------------------------------------
+static value musicios_isOtherAudioPlaying()
+{
+    return alloc_bool([AVAudioSession sharedInstance].otherAudioPlaying);
+}
+DEFINE_PRIM(musicios_isOtherAudioPlaying,0);
 
 ///--------------------------------------------------------------------
 static value musicios_getPosition(value musicSrc)
