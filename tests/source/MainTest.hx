@@ -31,17 +31,14 @@ class MainTest
         r = new TestRunner(testComplete, DuellKit.instance().onError);
         r.add(new SoundTest());
 
-        #if test
-
         #if jenkins
-        r.addLogger(new TestHTTPLogger(new TestJUnitLogger()));
+            r.addLogger(new TestHTTPLogger(new TestJUnitLogger()));
         #else
-        r.addLogger(new TestHTTPLogger(new TestSimpleLogger()));
+            r.addLogger(new TestHTTPLogger(new TestSimpleLogger()));
         #end
 
-        #else
-        r.addLogger(new TestSimpleLogger());
-        #end
+        //if you want to run your unittests on devices with android version < 5.0 use Logger without HTTP
+        //r.addLogger(new TestSimpleLogger());
 
         r.run();
     }
