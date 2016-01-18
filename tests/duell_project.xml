@@ -9,7 +9,7 @@
 	<source path="source" />
 
 	<duelllib name="sound" version="master"/>
-	<duelllib name="unittest" version="5.1.3+"/>
+	<duelllib name="unittest" version="5.2.0+"/>
 	<duelllib name="game_engine" version="20.0.0+"/>
 	<duelllib name="game_engine_extensions" version="20.0.0+"/>
 
