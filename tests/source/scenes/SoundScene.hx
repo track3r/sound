@@ -27,7 +27,7 @@ import game_engine.core.Scene;
 import game_engine.core.Sprite;
 
 import sound.Sound;
-import ash.core.Entity;
+import game_engine.dust.Entity;
 import game_engine_extensions.dragging.components.DragComponent;
 
 class SoundScene extends Scene

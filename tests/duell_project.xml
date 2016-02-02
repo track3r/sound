@@ -9,9 +9,9 @@
 	<source path="source" />
 
 	<duelllib name="sound" version="master"/>
-	<duelllib name="unittest" version="5.2.0+"/>
-	<duelllib name="game_engine" version="20.0.0+"/>
-	<duelllib name="game_engine_extensions" version="20.0.0+"/>
+	<duelllib name="unittest" version="6.0.0+"/>
+	<duelllib name="game_engine" version="22.0.0+"/>
+	<duelllib name="game_engine_extensions" version="22.0.0+"/>
 
     <platform-config>
     	<android>

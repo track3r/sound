@@ -22,6 +22,9 @@ class Music
     private var isPaused: Bool;
     private static var pluginsRegistered: Bool = false;
 
+    /// useless on this target
+    public static var allowNativePlayer(default, default): Bool;
+
     public function new()
     {
         isPaused = false;
