@@ -115,16 +115,16 @@ class SoundScene extends Scene
     private function createButtons(): Void
     {
         playBtn = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
-        playBtn.transform.x = 50;
-        playBtn.transform.y = 50;
+        playBtn.transform.x = -20;
+        playBtn.transform.y = 25;
 
         stopBtn = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
-        stopBtn.transform.x = 355;
-        stopBtn.transform.y = 50;
+        stopBtn.transform.x = 285;
+        stopBtn.transform.y = 25;
 
         pauseBtn = new SimpleButton(pauseBtnUpTexture, pauseBtnOverTexture, pauseBtnDownTexture);
-        pauseBtn.transform.x = 255;
-        pauseBtn.transform.y = 40;
+        pauseBtn.transform.x = 185;
+        pauseBtn.transform.y = 15;
 
         root.addChild(playBtn);
         root.addChild(stopBtn);
@@ -155,15 +155,15 @@ class SoundScene extends Scene
         });
 
         playBtn2 = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
-        playBtn2.transform.x = 50;
+        playBtn2.transform.x = -20;
         playBtn2.transform.y = 200;
 
         stopBtn2 = new SimpleButton(stopBtnUpTexture,stopBtnOverTexture, stopBtnDownTexture);
-        stopBtn2.transform.x = 355;
+        stopBtn2.transform.x = 285;
         stopBtn2.transform.y = 200;
 
         pauseBtn2 = new SimpleButton(pauseBtnUpTexture, pauseBtnOverTexture, pauseBtnDownTexture);
-        pauseBtn2.transform.x = 255;
+        pauseBtn2.transform.x = 185;
         pauseBtn2.transform.y = 190;
 
         root.addChild(playBtn2);
@@ -196,7 +196,7 @@ class SoundScene extends Scene
 
 
         volumeBtn = new SimpleButton(voleumeButtonTexture, voleumeButtonTexture, voleumeButtonTexture);
-        volumeBtn.transform.x = 600;
+        volumeBtn.transform.x = 450;
         volumeBtn.transform.y = 150;
         root.addChild(volumeBtn);
 
@@ -229,10 +229,10 @@ class SoundScene extends Scene
         nativePlayerCheckBox.size.width = 34;
         nativePlayerCheckBox.size.height = 34;
         nativePlayerCheckBox.transform.x = 350;
-        nativePlayerCheckBox.transform.y = 190;
+        nativePlayerCheckBox.transform.y = 180;
         nativePlayerCheckBox.transform.anchorPoint = 1.0;
+        nativePlayerCheckBox.checkStatus.selected = Music.allowNativePlayer;
 
-        Music.allowNativePlayer = true;
         nativePlayerCheckBox.settings.onCheckBoxChanged.add(function(entity: Entity, checked: Bool)
         {
             Music.allowNativePlayer = checked;
@@ -247,7 +247,7 @@ class SoundScene extends Scene
         checkBoxLabel.size.height = 64;
         checkBoxLabel.transform.scale = 0.5;
         checkBoxLabel.transform.x = 170;
-        checkBoxLabel.transform.y = 170;
+        checkBoxLabel.transform.y = 160;
         checkBoxLabel.settings.text = "Native player:";
 
         root.addChild(checkBoxLabel);
@@ -271,7 +271,7 @@ class SoundScene extends Scene
     override public function sceneWillAppear(): Void
     {
         createButtons();
-        loadSound("shotgun.mp3", "helicopter.mp3");
+        loadSound("sfx_GameDuell_Rummy_oklahoma_mode.mp3", "music_sine.mp3");
     }
 
     private function loadSound(filename: String, filename2: String): Void

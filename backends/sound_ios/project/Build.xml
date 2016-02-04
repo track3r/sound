@@ -4,6 +4,8 @@
 
     <files id="src">
 
+        <include name="${haxelib:duell_duellbuildios}/native/native.xml" />
+
         <compilerflag value="-Iinclude"/>
         <!-- dependencies -->
         <file name="src/oal_lib/ALBuffer.m" />
@@ -32,6 +34,8 @@
         <file name="src/oal_lib/NSMutableDictionary+WeakReferences.m" />
         <file name="src/oal_lib/OALAudioTrackNotifications.m" />
         <file name="src/oal_lib/mach_timing.c" />
+
+        <file name="src/SoundAppDelegateResponder.mm" />
 
         <!-- Native Extension -->
         <file name="src/GDSoundNativeExtension.mm" />

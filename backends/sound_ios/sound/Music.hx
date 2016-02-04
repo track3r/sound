@@ -36,8 +36,12 @@ class Music
     private static var getIsOtherAudioPlaying = Lib.load("soundios","musicios_isOtherAudioPlaying",0);
     private static var getLengthNative = Lib.load("soundios","musicios_getLength",1);
     private static var getPositionNative = Lib.load("soundios","musicios_getPosition",1);
+    private static var appDelegateInitialize = Lib.load("soundios","musicios_appdelegate_initialize",0);
+    private static var appDelegateSetForgraundCallback = Lib.load("soundios","musicios_appdelegate_set_willEnterForegroundCallback",1);
+    private static var appDelegateSetBackgroundCallback = Lib.load("soundios","musicios_appdelegate_set_willEnterBackgroundCallback",1);
 
     private var isPaused:Bool = false;
+    private var stoppedOnForeground: Bool = false;
 
     private function new()
     {
@@ -57,8 +61,44 @@ class Music
     }
     public function loadSoundFile(): Void
     {
+        appDelegateInitialize();
+        appDelegateSetBackgroundCallback(onBackground);
+        appDelegateSetForgraundCallback(onForeground);
+
         registerCallbackNativeFunc(onSoundLoadedCallback, onMusicFinishPlayingCallback);
         initializeNativeFunc(fileUrl);
+    }
+
+    private function onBackground(): Void
+    {
+    }
+
+    private function onForeground(): Void
+    {
+        if (nativeMusicChannel != null)
+        {
+            if (allowNativePlayer && isNativePlayerPlaying())
+            {
+                stopNativeFunc(nativeMusicChannel);
+                stoppedOnForeground = true;
+            }
+            else
+            {
+                if (stoppedOnForeground)
+                {
+                    stoppedOnForeground = false;
+                    nativeMusicChannel = playNativeFunc(fileUrl, volume, loop);
+                }
+                else
+                {
+                    pauseNativeFunc(nativeMusicChannel, isPaused);
+                }
+            }
+        }
+        else
+        {
+            stoppedOnForeground = false;
+        }
     }
 
     private function onMusicFinishPlayingCallback(filePath: String): Void

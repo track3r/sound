@@ -9,6 +9,7 @@
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
 #import "OALAudioTrackNotifications.h"
+#include "SoundAppDelegateResponder.h"
 
 /// sound Effects
 value *__soundLoadComplete = NULL;
@@ -22,6 +23,8 @@ value *__musicStoppedPlaying = NULL;
 
 /// Native player
 bool __allowNativePlayer = true;
+
+static SoundAppDelegateResponder *responder;
 
 //====================================================================
 //
@@ -388,5 +391,31 @@ static value musicios_getLength(value musicSrc)
     return alloc_float(getMusicChannelFromHaxePointer(musicSrc).duration * 1000);/// in millisecond
 }
 DEFINE_PRIM(musicios_getLength,1);
+
+static value musicios_appdelegate_initialize () {
+
+    if(!responder)
+    {
+        responder = [[SoundAppDelegateResponder alloc] init];
+        [responder initialize];
+    }
+	return alloc_null();
+}
+DEFINE_PRIM (musicios_appdelegate_initialize, 0);
+
+static value musicios_appdelegate_set_willEnterForegroundCallback (value inCallback) {
+
+    [responder setWillEnterForegroundCallback:inCallback];
+	return alloc_null();
+
+}
+DEFINE_PRIM (musicios_appdelegate_set_willEnterForegroundCallback, 1);
+
+static value musicios_appdelegate_set_willEnterBackgroundCallback (value inCallback) {
+
+    [responder setWillEnterBackgroundCallback:inCallback];
+	return alloc_null();
+}
+DEFINE_PRIM (musicios_appdelegate_set_willEnterBackgroundCallback, 1);
 
 extern "C" int soundios_register_prims () { return 0; }
