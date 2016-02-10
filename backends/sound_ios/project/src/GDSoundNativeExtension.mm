@@ -238,18 +238,6 @@ static value soundios_pause(value soundSrc, value pause)
 DEFINE_PRIM(soundios_pause,2);
 
 ///--------------------------------------------------------------------
-static value soundios_resume(value soundSrc)
-{
-    if (soundSrc != alloc_null())
-    {
-        [getSoundChannelFromHaxePointer(soundSrc) resume];
-    }
-
-    return alloc_null();
-}
-DEFINE_PRIM(soundios_resume,1);
-
-///--------------------------------------------------------------------
 static value soundios_setLoop(value filePath, value loop)
 {
     return alloc_null();
