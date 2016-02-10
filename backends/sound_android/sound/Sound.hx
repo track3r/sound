@@ -13,6 +13,11 @@ import hxjni.JNI;
 @:keep
 class Sound
 {
+    public var loadCallback: Sound -> Void;
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
+    public var fileUrl: String;
+
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Sound", "create",
     "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;Z)Lorg/haxe/duell/sound/Sound;");
     private static var preloadSoundNative = JNI.createMemberMethod("org/haxe/duell/sound/Sound",
@@ -29,11 +34,6 @@ class Sound
     "setLoop", "(I)V");
 
     private var javaSound: Dynamic;
-
-    public var loadCallback: Sound -> Void;
-
-    public var volume(default, set): Float;
-    public var loop(default, set): Bool;
 
     public static function load(fileUrl: String, loadCallback: Sound -> Void): Void
     {

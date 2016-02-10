@@ -12,14 +12,12 @@ using StringTools;
  */
 class Music
 {
-    public var volume(default, set_volume): Float;
-    public var loop(default, set_loop): Bool;
-    public var length(get_length, null): Float;
-    public var position(get_position, null): Float;
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
+    public var length(get, null): Float;
+    public var position(get, null): Float;
     public var loadCallback: sound.Music -> Void;
     public var fileUrl: String;
-    public var nativeMusicHandle: Dynamic;
-    public var nativeMusicChannel: Dynamic;
     public var onPlaybackComplete(default,null): Signal1<Music>;
 
     public static var allowNativePlayer(default, set_allowNativePlayer): Bool = true;
@@ -30,6 +28,7 @@ class Music
     private static var playNativeFunc = Lib.load("soundios","musicios_play",3);
     private static var stopNativeFunc = Lib.load("soundios","musicios_stop",1);
     private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",2);
+    private static var resumeNativeFunc = Lib.load("soundios","soundios_resume",1);
     private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",2);
     private static var setAllowNativePlayerNativeFunc = Lib.load("soundios","musicios_setAllowNativePlayer",1);
@@ -40,8 +39,9 @@ class Music
     private static var appDelegateSetForgraundCallback = Lib.load("soundios","musicios_appdelegate_set_willEnterForegroundCallback",1);
     private static var appDelegateSetBackgroundCallback = Lib.load("soundios","musicios_appdelegate_set_willEnterBackgroundCallback",1);
 
+    private var nativeMusicHandle: Dynamic;
+    private var nativeMusicChannel: Dynamic;
     private var isPaused:Bool = false;
-    private var stoppedOnForeground: Bool = false;
 
     private function new()
     {
@@ -49,6 +49,7 @@ class Music
         volume = 1.0;
         onPlaybackComplete = new Signal1();
     }
+
     public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
     {
         var music: Music = new Music();
@@ -59,7 +60,8 @@ class Music
 
         music.loadSoundFile();
     }
-    public function loadSoundFile(): Void
+
+    private function loadSoundFile(): Void
     {
         appDelegateInitialize();
         appDelegateSetBackgroundCallback(onBackground);
@@ -69,36 +71,23 @@ class Music
         initializeNativeFunc(fileUrl);
     }
 
+    // Hack XYZ: in order to prevent both the native and game music to play at the same time for 1 second, save the current
+    // volume and music the sound.
+    // TODO: try to prevent the game music from auto resuming when the apps goes to the foreground.
+    var onBackgroundMusicVolume: Float = 0.0;
+    // end of hack XYZ
+
     private function onBackground(): Void
     {
+        // Hack XYZ:
+        onBackgroundMusicVolume = volume;
+        volume = 0.0;
+        // end of hack XYZ
     }
 
     private function onForeground(): Void
     {
-        if (nativeMusicChannel != null)
-        {
-            if (allowNativePlayer && isNativePlayerPlaying())
-            {
-                stopNativeFunc(nativeMusicChannel);
-                stoppedOnForeground = true;
-            }
-            else
-            {
-                if (stoppedOnForeground)
-                {
-                    stoppedOnForeground = false;
-                    nativeMusicChannel = playNativeFunc(fileUrl, volume, loop);
-                }
-                else
-                {
-                    pauseNativeFunc(nativeMusicChannel, isPaused);
-                }
-            }
-        }
-        else
-        {
-            stoppedOnForeground = false;
-        }
+        // keep this for now, useful for debuging.
     }
 
     private function onMusicFinishPlayingCallback(filePath: String): Void
@@ -120,14 +109,23 @@ class Music
     {
         if (allowNativePlayer && isNativePlayerPlaying())
         {
+            stop();
             return;
         }
+
+        // Hack XYZ: restore the volume
+        if (onBackgroundMusicVolume != 0)
+        {
+            volume = onBackgroundMusicVolume;
+            onBackgroundMusicVolume = 0;
+        }
+        // end of hack XYZ
 
         if(isPaused && nativeMusicChannel != null)
         {
             /// if it is paused we just resume
             isPaused = false;
-            pauseNativeFunc(nativeMusicChannel, false);
+            resumeNativeFunc(nativeMusicChannel);
         }
         else
         {
@@ -141,6 +139,7 @@ class Music
         if(nativeMusicChannel != null)
         {
             stopNativeFunc(nativeMusicChannel);
+            nativeMusicChannel = null;
         }
     }
 

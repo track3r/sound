@@ -5,6 +5,7 @@
  */
 package scenes;
 
+import duellkit.DuellKit;
 import sound.Music;
 import filesystem.FileSystem;
 import game_engine.extra.AssetManager;
@@ -81,6 +82,19 @@ class SoundScene extends Scene
         createTextures();
         createCheckBox();
         registerSystems();
+
+        DuellKit.instance().onApplicationWillEnterBackground.add(onApplicationWillEnterBackground);
+        DuellKit.instance().onApplicationWillEnterForeground.add(onApplicationWillEnterForeground);
+    }
+
+    private function onApplicationWillEnterBackground(): Void
+    {
+        //music.pause();
+    }
+
+    private function onApplicationWillEnterForeground(): Void
+    {
+        //music.play();
     }
 
     private function createTextures(): Void
@@ -271,7 +285,7 @@ class SoundScene extends Scene
     override public function sceneWillAppear(): Void
     {
         createButtons();
-        loadSound("sfx_GameDuell_Rummy_oklahoma_mode.mp3", "music_sine.mp3");
+        loadSound("Loop_drums.mp3", "Loop_synth.mp3");
     }
 
     private function loadSound(filename: String, filename2: String): Void

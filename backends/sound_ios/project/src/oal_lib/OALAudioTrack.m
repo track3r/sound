@@ -366,6 +366,7 @@
 
 - (void) setPaused:(bool) value
 {
+    OAL_LOG_DEBUG(@"%@: setPaused", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		if(paused != value)
@@ -384,15 +385,24 @@
 																		   withObject:[NSNotification notificationWithName:OALAudioTrackStoppedPlayingNotification object:self] waitUntilDone:NO];
 				}
 			}
-			else if(playing)
+		}
+	}
+}
+
+- (void) resume
+{
+	OAL_LOG_DEBUG(@"%@: setPaused", self);
+	OPTIONALLY_SYNCHRONIZED(self)
+	{
+		if(paused && playing)
+		{
+			paused = false;
+			OAL_LOG_DEBUG(@"%@: Unpause", self);
+			playing = [player play];
+			if(playing)
 			{
-				OAL_LOG_DEBUG(@"%@: Unpause", self);
-				playing = [player play];
-				if(playing)
-				{
-					[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:)
-																		   withObject:[NSNotification notificationWithName:OALAudioTrackStartedPlayingNotification object:self] waitUntilDone:NO];
-				}
+				[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:)
+																	   withObject:[NSNotification notificationWithName:OALAudioTrackStartedPlayingNotification object:self] waitUntilDone:NO];
 			}
 		}
 	}
@@ -451,21 +461,25 @@
 
 - (void) addSuspendListener:(id<OALSuspendListener>) listenerIn
 {
+    OAL_LOG_DEBUG(@"%@: addSuspendListener", self);
 	[suspendHandler addSuspendListener:listenerIn];
 }
 
 - (void) removeSuspendListener:(id<OALSuspendListener>) listenerIn
 {
+    OAL_LOG_DEBUG(@"%@: removeSuspendListener", self);
 	[suspendHandler removeSuspendListener:listenerIn];
 }
 
 - (bool) manuallySuspended
 {
+    OAL_LOG_DEBUG(@"%@: manuallySuspended", self);
 	return suspendHandler.manuallySuspended;
 }
 
 - (void) setManuallySuspended:(bool) value
 {
+    OAL_LOG_DEBUG(@"%@: setManuallySuspended", self);
 	suspendHandler.manuallySuspended = value;
 }
 
@@ -496,6 +510,8 @@
 	 *
 	 * TODO: Need to find a way to avoid this situation.
 	 */
+
+    OAL_LOG_DEBUG(@"%@: setSuspended", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
         if(value)
@@ -549,6 +565,7 @@
 
                 if(playing)
                 {
+					OAL_LOG_DEBUG(@"%@: suspend", self);
                     playing = [player play];
                     if(paused)
                     {
@@ -590,6 +607,7 @@
 
 - (bool) preloadUrl:(NSURL*) url seekTime:(NSTimeInterval)seekTime
 {
+    OAL_LOG_DEBUG(@"%@: preloadUrl:seekTime", self);
 	if(nil == url)
 	{
 		OAL_LOG_ERROR(@"%@: Cannot open NULL file / url", self);
@@ -698,6 +716,7 @@
 		if([self preloadUrl:url])
 		{
 			self.numberOfLoops = loops;
+			OAL_LOG_DEBUG(@"%@: playUrl", self);
 			return [self play];
 		}
 		return NO;
@@ -736,6 +755,7 @@
 
 - (bool) play
 {
+    OAL_LOG_DEBUG(@"%@: play", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		[self stopActions];
@@ -757,6 +777,7 @@
 
 - (bool) playAtTime:(NSTimeInterval) time
 {
+    OAL_LOG_DEBUG(@"%@: playAtTime", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
         [self stopActions];
@@ -789,6 +810,7 @@
 
 - (void) stop
 {
+    OAL_LOG_DEBUG(@"%@: stop", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		[self stopActions];
@@ -818,6 +840,7 @@
 		 target:(id) target
 	   selector:(SEL) selector
 {
+    OAL_LOG_DEBUG(@"%@: fadeTo", self);
 	// Must always be synchronized
 	@synchronized(self)
 	{
@@ -940,6 +963,7 @@
 #if TARGET_OS_IPHONE
 - (void) audioPlayerBeginInterruption:(AVAudioPlayer*) playerIn
 {
+    OAL_LOG_DEBUG(@"%@: audioPlayerBeginInterruption", self);
 	if([delegate respondsToSelector:@selector(audioPlayerBeginInterruption:)])
 	{
 		[delegate audioPlayerBeginInterruption:playerIn];
@@ -948,6 +972,7 @@
 
 - (void)audioPlayerEndInterruption:(AVAudioPlayer *)playerIn withOptions:(NSUInteger)flags
 {
+    OAL_LOG_DEBUG(@"%@: audioPlayerEndInterruption", self);
 	if([delegate respondsToSelector:@selector(audioPlayerEndInterruption:withOptions:)])
 	{
 		[delegate audioPlayerEndInterruption:playerIn withOptions:flags];
@@ -957,6 +982,7 @@
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0
 - (void)audioPlayerEndInterruption:(AVAudioPlayer *)playerIn withFlags:(NSUInteger)flags
 {
+    OAL_LOG_DEBUG(@"%@: audioPlayerEndInterruption", self);
 	if([delegate respondsToSelector:@selector(audioPlayerEndInterruption:withFlags:)])
 	{
 		[delegate audioPlayerEndInterruption:playerIn withFlags:flags];
@@ -965,6 +991,7 @@
 
 - (void) audioPlayerEndInterruption:(AVAudioPlayer*) playerIn
 {
+    OAL_LOG_DEBUG(@"%@: audioPlayerEndInterruption", self);
 	if([delegate respondsToSelector:@selector(audioPlayerEndInterruption:)])
 	{
 		[delegate audioPlayerEndInterruption:playerIn];

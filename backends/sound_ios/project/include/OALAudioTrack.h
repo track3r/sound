@@ -52,32 +52,32 @@
 	float pan;
 	NSInteger numberOfLoops;
 	id<AVAudioPlayerDelegate> delegate; // Weak reference
-	
+
 	/** When the simulator is running (and the playback fix is in use),
 	 * player will be copied to here, and then player set to nil.
 	 * This prevents other code from inadvertently raising the volume
 	 * and starting playback.
 	 */
 	AVAudioPlayer* simulatorPlayerRef;
-	
+
 	/** Operation queue for running asynchronous operations.
 	 * <strong>Note:</strong> Only one asynchronous operation is allowed at a time.
 	 */
 	NSOperationQueue* operationQueue;
-	
+
 	/** If true, the audio player is currently playing.
 	 * We need to maintain our own value because AVAudioPlayer will
 	 * sometimes say it's not playing when it actually is.
 	 */
 	bool playing;
 	NSTimeInterval currentTime;
-	
+
 	/** The current action being applied to gain. */
 	OALAction* gainAction;
-	
+
 	/** The current action being applied to pan. */
 	OALAction* panAction;
-	
+
 	/** Handles suspending and interrupting for this object. */
 	OALSuspendHandler* suspendHandler;
 }
@@ -355,6 +355,10 @@
 /** Stop playing and stop all operations.
  */
 - (void) stop;
+
+/** Resumes the track if it was paused while playing.
+ */
+- (void) resume;
 
 /** Fade to the specified gain value.
  *

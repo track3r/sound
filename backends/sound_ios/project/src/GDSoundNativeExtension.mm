@@ -61,8 +61,8 @@ void registerMusicNotification(OALAudioTrack* track, NSString* name)
     [notifyCenter addObserverForName:nil
                               object:track
                                queue:nil
-                          usingBlock:^(NSNotification* notification){
-
+                          usingBlock:^(NSNotification* notification)
+                          {
                                 if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
                                 {
                                         if(__musicStoppedPlaying != NULL)
@@ -238,6 +238,18 @@ static value soundios_pause(value soundSrc, value pause)
 DEFINE_PRIM(soundios_pause,2);
 
 ///--------------------------------------------------------------------
+static value soundios_resume(value soundSrc)
+{
+    if (soundSrc != alloc_null())
+    {
+        [getSoundChannelFromHaxePointer(soundSrc) resume];
+    }
+
+    return alloc_null();
+}
+DEFINE_PRIM(soundios_resume,1);
+
+///--------------------------------------------------------------------
 static value soundios_setLoop(value filePath, value loop)
 {
     return alloc_null();
@@ -260,12 +272,6 @@ static value soundios_setMute(value soundSrc, value mute)
 }
 DEFINE_PRIM(soundios_setMute,2);
 
-///--------------------------------------------------------------------
-static value soundios_getPosition(value soundSrc)
-{
-    return alloc_float(getSoundChannelFromHaxePointer(soundSrc).position.x) ;
-}
-DEFINE_PRIM(soundios_getPosition,1);
 //====================================================================
 //
 // Background Music

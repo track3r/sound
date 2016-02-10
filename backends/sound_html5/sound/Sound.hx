@@ -10,13 +10,11 @@ import msignal.Signal.Signal1;
  */
 class Sound
 {
-    public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Bool;
-    public var length(get_length,null): Float;
-    public var position(get_position,null): Float;
+    public var volume(default,set): Float;
+    public var loop(default,set): Bool;
     public var loadCallback: sound.Sound -> Void;
-
     public var fileUrl: String;
+
     private var soundInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
     private static var pluginsRegistered: Bool = false;
@@ -54,11 +52,13 @@ class Sound
         soundObject.fileUrl = fileUrl;
         soundObject.loadSoundFile();
     }
-    public function loadSoundFile(): Void
+
+    private function loadSoundFile(): Void
     {
         SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
         SoundLoader.getInstance().loadSound(fileUrl);
     }
+
     private function soundHandleLoad(soundID: String): Void
     {
         if(soundID == this.fileUrl)
@@ -69,6 +69,7 @@ class Sound
             }
         }
     }
+
     public function play(): Void
     {
         if(isPaused && soundInstance != null)
@@ -133,25 +134,5 @@ class Sound
     {
         loop = value;
         return loop;
-    }
-
-    /// get the length of the current sound
-    private function get_length(): Float
-    {
-        if(soundInstance == null)
-        {
-            return 0.0;
-        }
-        return soundInstance.getDuration();
-    }
-
-    /// get the current time of the current sound
-    private function get_position(): Float
-    {
-        if(soundInstance == null)
-        {
-            return 0.0;
-        }
-        return soundInstance.getPosition();
     }
 }

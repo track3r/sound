@@ -10,14 +10,16 @@ import msignal.Signal.Signal1;
  */
 class Music
 {
-    public var volume(default,set_volume): Float;
-    public var loop(default,set_loop): Bool;
-    public var length(get_length,null): Float;
-    public var position(get_position,null): Float;
-    public var onPlaybackComplete(default,null): Signal1<Music>;
+    public var volume(default,set): Float;
+    public var loop(default,set): Bool;
+    public var length(get,null): Float;
+    public var position(get,null): Float;
     public var loadCallback: sound.Music -> Void;
-
     public var fileUrl: String;
+    public var onPlaybackComplete(default,null): Signal1<Music>;
+
+    public static var allowNativePlayer(default, default): Bool = true;
+
     private var musicInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
     private static var pluginsRegistered: Bool = false;
@@ -55,11 +57,13 @@ class Music
         music.fileUrl = fileUrl;
         music.loadSoundFile();
     }
-    public function loadSoundFile(): Void
+
+    private function loadSoundFile(): Void
     {
         SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
         SoundLoader.getInstance().loadSound(fileUrl);
     }
+
     private function soundHandleLoad(soundID: String): Void
     {
         if(soundID == this.fileUrl)
@@ -70,6 +74,7 @@ class Music
             }
         }
     }
+
     public function play(): Void
     {
         if(isPaused && musicInstance != null)
