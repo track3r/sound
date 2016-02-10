@@ -31,7 +31,6 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     private boolean playAfterPreload;
 
     private static boolean allowNativePlayer = true;
-    private static boolean isNativePlayerPlaying;
 
     public static Music create(final HaxeObject haxeObject, final String fileUrl)
     {
@@ -46,9 +45,6 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
         duration = -1;
         volume = 1.0f;
         looped = false;
-
-        // In order to know if the native player was playing a music before our SoundManger is initialized
-        isNativePlayerPlaying = FocusManager.isMusicPlaying();
 
         unload();
 
@@ -72,7 +68,11 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
 
     public void playMusic()
     {
-        if (allowNativePlayer && isNativePlayerPlaying)
+        // the native player could have stopped so we check if ANY music is currently playing.
+        boolean isMusicPlaying = FocusManager.isMusicPlaying();
+        boolean isNativePlayerPlaying = SoundManager.getSharedInstance().isNativePlayerPlaying;
+
+        if (allowNativePlayer && isNativePlayerPlaying && isMusicPlaying)
         {
             return;
         }
@@ -161,7 +161,9 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
         if (!allowNativePlayer)
         {
             // if native player is not allow it shall be silenced
-            isNativePlayerPlaying = false;
+            boolean isNativePlayerPlaying = SoundManager.getSharedInstance().isNativePlayerPlaying;
+            SoundManager.getSharedInstance().isNativePlayerPlaying = false;
+
             SoundManager.getSharedInstance().requestFocus();
         }
     }

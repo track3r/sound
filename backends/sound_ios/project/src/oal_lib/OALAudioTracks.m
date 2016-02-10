@@ -68,7 +68,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioTracks);
 		suspendHandler = [[OALSuspendHandler alloc] initWithTarget:nil selector:nil];
 
 		tracks = [NSMutableArray newMutableArrayUsingWeakReferencesWithCapacity:10];
-		
+
 		[[OALAudioSession sharedInstance] addSuspendListener:self];
 
         // Bug: Need to constantly poll deviceCurrentTime or else it resets to 0
@@ -112,7 +112,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioTracks);
 			OAL_LOG_DEBUG(@"%@: Called mutator on suspended object", self);
 			return;
 		}
-		
+
 		paused = value;
 		for(OALAudioTrack* track in tracks)
 		{
@@ -135,7 +135,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioTracks);
 			OAL_LOG_DEBUG(@"%@: Called mutator on suspended object", self);
 			return;
 		}
-		
+
 		muted = value;
 		for(OALAudioTrack* track in tracks)
 		{

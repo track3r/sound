@@ -41,5 +41,6 @@ extern class Music
     /** mute the sound, means volume is 0*/
     public function mute(): Void;
 
-    public static function load(loadCallback: Void -> Sound): Void;
+    /** load and decode a given sound*/
+    public static function load(fileUrl: String, loadCallback: Music -> Void): Void
 }

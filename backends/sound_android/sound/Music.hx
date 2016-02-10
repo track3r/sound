@@ -14,6 +14,16 @@ import msignal.Signal;
 @:keep
 class Music
 {
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
+    public var length(get, null): Float;
+    public var position(get, null): Float;
+    public var loadCallback: Music -> Void;
+    public var fileUrl: String;
+    public var onPlaybackComplete(default, null): Signal1<Music>;
+
+    public static var allowNativePlayer(default, set_allowNativePlayer): Bool;
+
     private static var createNative = JNI.createStaticMethod("org/haxe/duell/sound/Music", "create",
     "(Lorg/haxe/duell/hxjni/HaxeObject;Ljava/lang/String;)Lorg/haxe/duell/sound/Music;");
     private static var preloadMusicNative = JNI.createMemberMethod("org/haxe/duell/sound/Music",
@@ -36,16 +46,6 @@ class Music
     "getPosition", "()F");
 
     private var javaMusic: Dynamic;
-
-    public var loadCallback: Music -> Void;
-
-    public var volume(default, set): Float;
-    public var loop(default, set): Bool;
-    public var length(get, never): Float;
-    public var position(get, never): Float;
-    public var onPlaybackComplete(default, null): Signal1<Music>;
-
-    public static var allowNativePlayer(default, set_allowNativePlayer): Bool;
 
     public static function load(fileUrl: String, loadCallback: Music -> Void): Void
     {

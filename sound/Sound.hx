@@ -1,6 +1,6 @@
 /**
  * @author kgar
- * @date  23/12/14 
+ * @date  23/12/14
  * Copyright (c) 2014 GameDuell GmbH
  */
 package sound;
@@ -8,7 +8,7 @@ package sound;
 extern class Sound
 {
     /** the sound volume goes from 0 to 1 */
-    public var volume (default, set): Int;
+    public var volume (default, set): Float;
     /** set it to true if you want the sound to loop */
     public var loop (default, set): Bool;
     /** the callback when the sound is fully loaded and decoded Hopefully :)*/
@@ -30,5 +30,5 @@ extern class Sound
     public function mute(): Void;
 
     /** load and decode a given sound*/
-    public static function load(loadCallback: Void -> Sound): Void;
+    public static function load(fileUrl: String, loadCallback: Sound -> Void): Void;
 }

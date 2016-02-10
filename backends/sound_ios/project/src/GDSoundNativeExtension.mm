@@ -9,6 +9,7 @@
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
 #import "OALAudioTrackNotifications.h"
+#include "SoundAppDelegateResponder.h"
 
 /// sound Effects
 value *__soundLoadComplete = NULL;
@@ -22,6 +23,8 @@ value *__musicStoppedPlaying = NULL;
 
 /// Native player
 bool __allowNativePlayer = true;
+
+static SoundAppDelegateResponder *responder;
 
 //====================================================================
 //
@@ -58,8 +61,8 @@ void registerMusicNotification(OALAudioTrack* track, NSString* name)
     [notifyCenter addObserverForName:nil
                               object:track
                                queue:nil
-                          usingBlock:^(NSNotification* notification){
-
+                          usingBlock:^(NSNotification* notification)
+                          {
                                 if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
                                 {
                                         if(__musicStoppedPlaying != NULL)
@@ -235,6 +238,18 @@ static value soundios_pause(value soundSrc, value pause)
 DEFINE_PRIM(soundios_pause,2);
 
 ///--------------------------------------------------------------------
+static value soundios_resume(value soundSrc)
+{
+    if (soundSrc != alloc_null())
+    {
+        [getSoundChannelFromHaxePointer(soundSrc) resume];
+    }
+
+    return alloc_null();
+}
+DEFINE_PRIM(soundios_resume,1);
+
+///--------------------------------------------------------------------
 static value soundios_setLoop(value filePath, value loop)
 {
     return alloc_null();
@@ -257,12 +272,6 @@ static value soundios_setMute(value soundSrc, value mute)
 }
 DEFINE_PRIM(soundios_setMute,2);
 
-///--------------------------------------------------------------------
-static value soundios_getPosition(value soundSrc)
-{
-    return alloc_float(getSoundChannelFromHaxePointer(soundSrc).position.x) ;
-}
-DEFINE_PRIM(soundios_getPosition,1);
 //====================================================================
 //
 // Background Music
@@ -388,5 +397,31 @@ static value musicios_getLength(value musicSrc)
     return alloc_float(getMusicChannelFromHaxePointer(musicSrc).duration * 1000);/// in millisecond
 }
 DEFINE_PRIM(musicios_getLength,1);
+
+static value musicios_appdelegate_initialize () {
+
+    if(!responder)
+    {
+        responder = [[SoundAppDelegateResponder alloc] init];
+        [responder initialize];
+    }
+	return alloc_null();
+}
+DEFINE_PRIM (musicios_appdelegate_initialize, 0);
+
+static value musicios_appdelegate_set_willEnterForegroundCallback (value inCallback) {
+
+    [responder setWillEnterForegroundCallback:inCallback];
+	return alloc_null();
+
+}
+DEFINE_PRIM (musicios_appdelegate_set_willEnterForegroundCallback, 1);
+
+static value musicios_appdelegate_set_willEnterBackgroundCallback (value inCallback) {
+
+    [responder setWillEnterBackgroundCallback:inCallback];
+	return alloc_null();
+}
+DEFINE_PRIM (musicios_appdelegate_set_willEnterBackgroundCallback, 1);
 
 extern "C" int soundios_register_prims () { return 0; }

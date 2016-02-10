@@ -11,14 +11,10 @@ import cpp.Lib;
  */
 class Sound
 {
-    public var volume(default, set_volume): Float;
-    public var loop(default, set_loop): Bool;
-    public var length(default, null): Float;
-    public var position(get_position, null): Float;
+    public var volume(default, set): Float;
+    public var loop(default, set): Bool;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
-    public var nativeSoundHandle: Dynamic;
-    public var nativeSoundChannel: Dynamic;
 
     ///Native function references
     private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
@@ -29,8 +25,8 @@ class Sound
     private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
 
-    private static var getPositionNative = Lib.load("soundios","soundios_getPosition",1);
-
+    private var nativeSoundHandle: Dynamic;
+    private var nativeSoundChannel: Dynamic;
     private var isPaused: Bool = false;
 
     private function new()
@@ -38,6 +34,7 @@ class Sound
         loop = false;
         volume = 1.0;
     }
+
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
         var pos: Int = 0;
@@ -53,15 +50,16 @@ class Sound
 
         soundObj.loadSoundFile();
     }
-    public function loadSoundFile(): Void
+
+    private function loadSoundFile(): Void
     {
         registerCallbackNativeFunc(onSoundLoadedCallback);
         initializeNativeFunc(fileUrl, this);
     }
+
     private function onSoundLoadedCallback(nativeSoundHandle: Dynamic, length: Float): Void
     {
         this.nativeSoundHandle = nativeSoundHandle;
-        this.length = length;
         if(this.loadCallback != null)
         {
             this.loadCallback(this);
@@ -125,14 +123,5 @@ class Sound
     {
         loop = value;
         return loop;
-    }
-    /// get the current time of the current sound
-    private function get_position(): Float
-    {
-        if(nativeSoundChannel != null)
-        {
-            return getPositionNative(nativeSoundChannel);
-        }
-        return 0.0;
     }
 }

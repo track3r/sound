@@ -50,6 +50,8 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
     private final WeakReference<AssetManager> assetManager;
 
+    public static boolean isNativePlayerPlaying;
+
     public static SoundManager getSharedInstance()
     {
         if (instance == null)
@@ -67,6 +69,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         soundStreamsPaused = new SparseBooleanArray();
         loadedSounds = new SparseArray<Sound>();
         soundLoadQueue = new ArrayDeque<Integer>();
+
+        // In order to know if the native player was playing a music before our SoundManger is initialized
+        // TODO: try to find a way to know if the native player is playing at any given time
+        isNativePlayerPlaying = FocusManager.isMusicPlaying();
 
         create();
     }

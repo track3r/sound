@@ -197,6 +197,7 @@
 
 - (void) setInterrupted:(bool) value
 {
+    OAL_LOG_DEBUG(@"%@: setInterrupted", self);
 	/* This handler propagates all interrupt/end interrupt events to all listeners.
 	 * An end interrupt will occur in the reverse order to an interrupt (meaning, it will
 	 * end interrupt on listeners in the reverse order that it interrupted them).
