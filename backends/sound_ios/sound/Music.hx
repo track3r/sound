@@ -67,7 +67,7 @@ class Music
         appDelegateSetForgraundCallback(onForeground);
 
         registerCallbackNativeFunc(onSoundLoadedCallback, onMusicFinishPlayingCallback);
-        initializeNativeFunc(fileUrl);
+        nativeMusicChannel = initializeNativeFunc(fileUrl);
     }
 
     // Hack XYZ: in order to prevent both the native and game music to play at the same time for 1 second, save the current
@@ -129,7 +129,7 @@ class Music
         else
         {
             /// otherwise we play normally
-            nativeMusicChannel = playNativeFunc(fileUrl, volume, loop);
+            playNativeFunc(fileUrl, volume, loop);
         }
     }
 

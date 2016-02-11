@@ -155,8 +155,6 @@ static void musicChannelFinalizer(value abstract_object)
 
 static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
 {
-    [musicChannel retain];
-
     value v;
     v = alloc_abstract(k_MusicChannelHandle, musicChannel);
     val_gc(v, (hxFinalizer) &musicChannelFinalizer);
@@ -265,13 +263,14 @@ DEFINE_PRIM(soundios_setMute,2);
 // Background Music
 //====================================================================
 
-static value musicios_initialize(value filePath, value currentMusic)
+static value musicios_initialize(value filePath)
 {
     soundios_setDeviceConfig();
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
     musicTrack = [[OALAudioTrack alloc] init];
+    [musicTrack retain];
 
     /// preload the music file
     [musicTrack preloadFile:musicPath];
@@ -280,7 +279,7 @@ static value musicios_initialize(value filePath, value currentMusic)
     value hxMusicHandle = createHaxePointerForSoundHandle(musicPath);
 
     val_call1(*__musicLoadComplete, hxMusicHandle);
-    return alloc_null();
+    return createHaxePointerForMusicChannelHandle(musicTrack);
 }
 DEFINE_PRIM(musicios_initialize,1);
 
@@ -317,7 +316,7 @@ static value musicios_play(value filePath, value volume, value loop)
     [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
     musicTrack.volume = val_float(volume);
 
-    return createHaxePointerForMusicChannelHandle(musicTrack);
+    return alloc_null();
 }
 DEFINE_PRIM(musicios_play,3);
 
