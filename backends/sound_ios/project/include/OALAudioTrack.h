@@ -356,10 +356,6 @@
  */
 - (void) stop;
 
-/** Resumes the track if it was paused while playing.
- */
-- (void) resume;
-
 /** Fade to the specified gain value.
  *
  * @param gain The gain to fade to.

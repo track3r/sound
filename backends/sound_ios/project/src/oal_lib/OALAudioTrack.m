@@ -366,7 +366,6 @@
 
 - (void) setPaused:(bool) value
 {
-    OAL_LOG_DEBUG(@"%@: setPaused", self);
 	OPTIONALLY_SYNCHRONIZED(self)
 	{
 		if(paused != value)
@@ -385,24 +384,15 @@
 																		   withObject:[NSNotification notificationWithName:OALAudioTrackStoppedPlayingNotification object:self] waitUntilDone:NO];
 				}
 			}
-		}
-	}
-}
-
-- (void) resume
-{
-	OAL_LOG_DEBUG(@"%@: setPaused", self);
-	OPTIONALLY_SYNCHRONIZED(self)
-	{
-		if(paused && playing)
-		{
-			paused = false;
-			OAL_LOG_DEBUG(@"%@: Unpause", self);
-			playing = [player play];
-			if(playing)
+			else if(playing)
 			{
-				[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:)
-																	   withObject:[NSNotification notificationWithName:OALAudioTrackStartedPlayingNotification object:self] waitUntilDone:NO];
+				OAL_LOG_DEBUG(@"%@: Unpause", self);
+				playing = [player play];
+				if(playing)
+				{
+					[[NSNotificationCenter defaultCenter] performSelectorOnMainThread:@selector(postNotification:)
+																		   withObject:[NSNotification notificationWithName:OALAudioTrackStartedPlayingNotification object:self] waitUntilDone:NO];
+				}
 			}
 		}
 	}

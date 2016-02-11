@@ -28,7 +28,6 @@ class Music
     private static var playNativeFunc = Lib.load("soundios","musicios_play",3);
     private static var stopNativeFunc = Lib.load("soundios","musicios_stop",1);
     private static var pauseNativeFunc = Lib.load("soundios","musicios_pause",2);
-    private static var resumeNativeFunc = Lib.load("soundios","soundios_resume",1);
     private static var setVolumeNativeFunc = Lib.load("soundios","musicios_setVolume",2);
     private static var setMuteNativeFunc = Lib.load("soundios","musicios_setMute",2);
     private static var setAllowNativePlayerNativeFunc = Lib.load("soundios","musicios_setAllowNativePlayer",1);
@@ -68,7 +67,7 @@ class Music
         appDelegateSetForgraundCallback(onForeground);
 
         registerCallbackNativeFunc(onSoundLoadedCallback, onMusicFinishPlayingCallback);
-        initializeNativeFunc(fileUrl);
+        nativeMusicChannel = initializeNativeFunc(fileUrl);
     }
 
     // Hack XYZ: in order to prevent both the native and game music to play at the same time for 1 second, save the current
@@ -125,12 +124,12 @@ class Music
         {
             /// if it is paused we just resume
             isPaused = false;
-            resumeNativeFunc(nativeMusicChannel);
+            pauseNativeFunc(nativeMusicChannel, false);
         }
         else
         {
             /// otherwise we play normally
-            nativeMusicChannel = playNativeFunc(fileUrl, volume, loop);
+            playNativeFunc(fileUrl, volume, loop);
         }
     }
 
