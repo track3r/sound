@@ -3,118 +3,125 @@
  * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
+
 import filesystem.FileSystem;
 import msignal.Signal.Signal1;
-/**
- * @author kgar
- */
+
+import js.html.Blob;
+import js.html.URL;
+
+import howler.Howl;
+
 class Sound
 {
-    public var volume(default,set): Float;
-    public var loop(default,set): Bool;
-    public var loadCallback: sound.Sound -> Void;
+    public var volume(default,set): Float = 1.0;
+    public var loop(default,set): Bool = false;
     public var fileUrl: String;
 
-    private var soundInstance: createjs.soundjs.SoundInstance;
-    private var isPaused: Bool;
-    private static var pluginsRegistered: Bool = false;
+    public var currentSoundIds: Array<Int> = [];
 
-    public function new()
-    {
-        isPaused = false;
-        loop = false;
-        volume = 1.0;
-    }
+    private var blob: Blob;
+    private var howl: Howl;
+    private var isPaused: Bool = false;
+
+    private function new() {}
 
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
     {
-        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0)
+        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == -1 &&
+            fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == -1)
         {
-            fileUrl = fileUrl.substr(FileSystem.instance().getUrlToStaticData().length);
-
-            var pos: Int = 0;
-            while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
-            {
-                pos++;
-            }
-            fileUrl = fileUrl.substr(pos);
-
-            fileUrl = "assets/" + fileUrl;
-        }
-        else if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0 ||
-        fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == 0)
-        {
+            /// TODO replace with a proper return of a default sound
             throw "Sounds not supported outside the assets";
         }
 
-        var soundObject: Sound = new sound.Sound();
-        soundObject.loadCallback = loadCallback;
-        soundObject.fileUrl = fileUrl;
-        soundObject.loadSoundFile();
+        var soundObject = new Sound();
+        soundObject.loadSoundFile(fileUrl, loadCallback);
     }
 
-    private function loadSoundFile(): Void
+    private function loadSoundFile(url: String, loadCallback: Sound->Void): Void
     {
-        SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
-        SoundLoader.getInstance().loadSound(fileUrl);
-    }
+        fileUrl = url;
 
-    private function soundHandleLoad(soundID: String): Void
-    {
-        if(soundID == this.fileUrl)
-        {
-            if(this.loadCallback != null)
+        var data = FileSystem.instance().getData(fileUrl);
+
+        blob = new Blob([data.arrayBuffer]);
+        var blobUrl = URL.createObjectURL(blob, {type: "audio/mpeg"});
+
+        howl = new Howl({
+            urls: [blobUrl],
+            format: "mp3",
+            onload: function() {
+                loadCallback(this);
+            },
+            onloaderror: function(error: String)
             {
-                this.loadCallback(this);
+                trace ("[Sound] error loading file with url " + fileUrl + "with error " + error);
+            },
+            onend: function(id: Int) {
+                if (howl == null)
+                    return;
+
+                if (!howl.loop())
+                {
+                    trace("removed " + id);
+                    currentSoundIds.remove(id);
+                }
             }
-        }
+        });
     }
 
     public function play(): Void
     {
-        if(isPaused && soundInstance != null)
-        {
-            soundInstance.resume();
-            isPaused = false;
+        if (howl == null)
             return;
-        }
 
-        if(soundInstance != null)
+        if (isPaused)
         {
-            stop();
+            for (id in currentSoundIds)
+            {
+                howl.play(untyped id);
+            }
+
+            isPaused = false;
         }
-        var loopsCount = 9999;
-        if(!loop)
+        else
         {
-            loopsCount = 0;
+            howl.play(function(id: Int) {
+                currentSoundIds.push(id);
+                trace("played with id: " + id);
+            });
         }
-        soundInstance = createjs.soundjs.Sound.play(fileUrl, null, 0, 0, loopsCount);
-        soundInstance.volume = volume;
     }
 
     public function stop(): Void
     {
-        if(soundInstance != null)
+        if (howl == null)
+            return;
+
+        for (id in currentSoundIds)
         {
-            soundInstance.stop();
-            soundInstance = null;
+            howl.stop(id);
         }
+
+        currentSoundIds = [];
     }
 
     public function pause(): Void
     {
-        if(soundInstance != null)
+        for (id in currentSoundIds)
         {
-            isPaused = true;
-            soundInstance.pause();
+            howl.pause(id);
         }
+
+        isPaused = true;
     }
 
     public function mute(): Void
     {
-        if(soundInstance != null)
+        for (id in currentSoundIds)
         {
-            soundInstance.setMute(true);
+            howl.mute(id);
         }
     }
 
@@ -122,10 +129,7 @@ class Sound
     private function set_volume(value: Float): Float
     {
         volume = value;
-        if(soundInstance != null)
-        {
-            soundInstance.volume = volume;
-        }
+        howl.volume(value);
         return volume;
     }
 
@@ -133,6 +137,7 @@ class Sound
     private function set_loop(value: Bool): Bool
     {
         loop = value;
+        howl.loop(value);
         return loop;
     }
 }

@@ -3,6 +3,8 @@
 	<platform-config>
     	<html5>
 			<js-source path="libs/soundjs-0.6.2.min.js" applyTemplate="false"/>
+			<js-source path="libs/howler.js" applyTemplate="false" if="debug"/>
+			<js-source path="libs/howler.min.js" applyTemplate="false" unless="debug"/>
     	</html5>
 
     </platform-config>

@@ -18,8 +18,6 @@ class Music
     public var fileUrl: String;
     public var onPlaybackComplete(default,null): Signal1<Music>;
 
-    public static var allowNativePlayer(default, default): Bool = true;
-
     private var musicInstance: createjs.soundjs.SoundInstance;
     private var isPaused: Bool;
     private static var pluginsRegistered: Bool = false;

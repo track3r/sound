@@ -18,6 +18,7 @@ class SoundLoader
     {
         //fallback will be in the same order
         createjs.soundjs.Sound.registerPlugins([createjs.soundjs.WebAudioPlugin, createjs.soundjs.HTMLAudioPlugin]);
+
         soundLoaded = new Signal1();
         loadedSounds = [];
     }
