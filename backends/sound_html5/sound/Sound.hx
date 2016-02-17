@@ -18,7 +18,7 @@ class Sound
     public var loop(default,set): Bool = false;
     public var fileUrl: String;
 
-    public var currentSoundIds: Array<Int> = [];
+    public var currentSoundIds: Array<String> = [];
 
     private var blob: Blob;
     private var howl: Howl;
@@ -31,12 +31,14 @@ class Sound
         if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == -1 &&
             fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == -1)
         {
-            /// TODO replace with a proper return of a default sound
-            throw "Sounds not supported outside the assets";
+            trace('ERROR playing sound URL=${fileUrl}. Sounds not supported outside the assets.');
+            loadCallback(null);
         }
-
-        var soundObject = new Sound();
-        soundObject.loadSoundFile(fileUrl, loadCallback);
+        else
+        {
+            var soundObject = new Sound();
+            soundObject.loadSoundFile(fileUrl, loadCallback);
+        }
     }
 
     private function loadSoundFile(url: String, loadCallback: Sound->Void): Void
@@ -58,13 +60,12 @@ class Sound
             {
                 trace ("[Sound] error loading file with url " + fileUrl + "with error " + error);
             },
-            onend: function(id: Int) {
+            onend: function(id: String) {
                 if (howl == null)
                     return;
 
                 if (!howl.loop())
                 {
-                    trace("removed " + id);
                     currentSoundIds.remove(id);
                 }
             }
@@ -80,16 +81,15 @@ class Sound
         {
             for (id in currentSoundIds)
             {
-                howl.play(untyped id);
+                howl.play(null, id);
             }
 
             isPaused = false;
         }
         else
         {
-            howl.play(function(id: Int) {
+            howl.play(function(id: String) {
                 currentSoundIds.push(id);
-                trace("played with id: " + id);
             });
         }
     }
@@ -105,6 +105,7 @@ class Sound
         }
 
         currentSoundIds = [];
+        isPaused = false;
     }
 
     public function pause(): Void

@@ -37,35 +37,36 @@ extern class Howl {
      * @param {Int->Void} callback with sound id to continue previous.
      * @return {Int} Sound ID.
      */
-    function play(?sprite:String, ?playbackCallback: Int->Void):Int;
+    @:overload(function(sprite:String, id: String):Howl {})
+    function play(?sprite:String, ?playbackCallback: String->Void):Howl;
 
     /**
      * Pause playback and save current position.
      * @param {Int} id The sound ID (empty to pause all in group).
      * @return {Howl}
      */
-    function pause(?id:Int):Howl;
+    function pause(?id:String):Howl;
 
     /**
      * Stop playback and reset to start.
      * @param {Int} id The sound ID (empty to stop all in group).
      * @return {Howl}
      */
-    function stop(?id:Int):Howl;
+    function stop(?id:String):Howl;
 
     /**
      * Mute a single sound or all sounds in this Howl group.
      * @param {Int} id The sound ID to update (omit to mute all).
      * @return {Howl}
      */
-    function mute(?id:Int):Howl;
+    function mute(?id:String):Howl;
 
     /**
      * Unmute a single sound or all sounds in this Howl group.
      * @param {Int} id The sound ID to update (omit to unmute all).
      * @return {Howl}
      */
-    function unmute(?id:Int):Howl;
+    function unmute(?id:String):Howl;
 
     /**
      * Fade a currently playing sound between two volumes (if no id is passsed, all sounds will fade).
@@ -85,9 +86,9 @@ extern class Howl {
      * pos(seek, id) -> Sets the position of passed sound id.
      * @return {Howl/Float} Returns self or the current position.
      */
-    @:overload(function(pos:Float, id:Int):Dynamic {})
+    @:overload(function(pos:Float, id:String):Dynamic {})
     @:overload(function(pos:Float):Dynamic {})
-    @:overload(function(id:Int):Float {})
+    @:overload(function(id:String):Float {})
     function pos():Float;
 
     /**
@@ -97,8 +98,8 @@ extern class Howl {
      * @param {Int} id (optional) Only listen to events for this sound.
      * @return {Howl}
      */
-    @:overload(function(event:String, fn:Int -> Void, ?id:Int):Howl {})
-    function on(event:String, fn:Void -> Void, ?id:Int):Howl;
+    @:overload(function(event:String, fn:String -> Void, ?id:String):Howl {})
+    function on(event:String, fn:Void -> Void, ?id:String):Howl;
 
     /**
      * Remove a custom event.
@@ -107,8 +108,8 @@ extern class Howl {
      * @param {Number} id (optional) Only remove events for this sound.
      * @return {Howl}
      */
-    @:overload(function(event:String, fn:Int -> Void, ?id:Int):Howl {})
-    function off(event:String, ?fn:Void -> Void, ?id:Int):Howl;
+    @:overload(function(event:String, fn:String -> Void, ?id:String):Howl {})
+    function off(event:String, ?fn:Void -> Void, ?id:String):Howl;
 
     /**
      * Unload and destroy the current Howl object.
@@ -135,9 +136,9 @@ extern class Howl {
 	 * volume(vol, id) -> Sets the volume of passed sound id.
 	 * @return {Howl/Float} Returns self or current volume.
 	 */
-	@:overload(function(vol:Float, id:Int):Dynamic {})
+	@:overload(function(vol:Float, id:String):Dynamic {})
 	@:overload(function(vol:Float):Dynamic {})
-	@:overload(function(id:Int):Float {})
+	@:overload(function(id:String):Float {})
 	function volume():Float;
 
     /**
@@ -221,15 +222,15 @@ typedef HowlOptions = {
      * Fires when the sound finishes playing (if it is looping, it'll fire at the end of each loop).
      * The first parameter is the ID of the sound.
      */
-    @:optional var onend:Int -> Void;
+    @:optional var onend:String -> Void;
     /**
      * Fires when the sound has been paused.
      * The first parameter is the ID of the sound.
      */
-    @:optional var onpause:Int -> Void;
+    @:optional var onpause:String -> Void;
     /**
      * Fires when the sound begins playing.
      * The first parameter is the ID of the sound.
      */
-    @:optional var onplay:Int -> Void;
+    @:optional var onplay:String -> Void;
 }

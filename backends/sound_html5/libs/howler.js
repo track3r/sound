@@ -436,7 +436,8 @@
         node._sprite = sprite;
 
         // determine where to start playing from
-        var pos = (node._pos > 0) ? node._pos : self._sprite[sprite][0] / 1000;
+        // if it is a looping sound the position can be greater then length, the modulo fixes that
+        var pos = (node._pos > 0) ? node._pos % (self._sprite[sprite][1] / 1000) : self._sprite[sprite][0] / 1000;
 
         // determine how long to play for
         var duration = 0;
@@ -497,7 +498,8 @@
           node.id = soundId;
           node.paused = false;
           refreshBuffer(self, [loop, loopStart, loopEnd], soundId);
-          self._playStart = ctx.currentTime;
+          // keeps the start time for each node independently
+          node._playStart = ctx.currentTime;
           node.gain.value = self._volume;
 
           if (typeof node.bufferSource.start === 'undefined') {
@@ -800,7 +802,7 @@
 
           return self;
         } else {
-          return self._webAudio ? activeNode._pos + (ctx.currentTime - self._playStart) : activeNode.currentTime;
+          return self._webAudio ? activeNode._pos + (ctx.currentTime - activeNode._playStart) : activeNode.currentTime;
         }
       } else if (pos >= 0) {
         return self;
@@ -1214,7 +1216,7 @@
         loadSound(obj);
         return;
       }
-      
+
       if (/^data:[^;]+;base64,/.test(url)) {
         // Decode base64 data-URIs because some browsers cannot load data-URIs with XMLHttpRequest.
         var data = atob(url.split(',')[1]);
@@ -1222,7 +1224,7 @@
         for (var i=0; i<data.length; ++i) {
           dataView[i] = data.charCodeAt(i);
         }
-        
+
         decodeAudioData(dataView.buffer, obj, url);
       } else {
         // load the buffer from the URL
