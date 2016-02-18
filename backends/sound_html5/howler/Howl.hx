@@ -1,236 +1,99 @@
 package howler;
 
-@:native("Howl")
+@:native("window.Howl")
 extern class Howl {
 
-    public var autoplay: Bool;
+	function new(options:HowlOptions):Void;
 
-    public var buffer: Bool;
+	function load():Howl;
 
-    public var format: String;
+	@:overload(function(urls:Array<String>):Howl {})
+	function urls(urls:Array<String>):Array<String>;
 
-    public var sprite: Dynamic;
+	@:overload(function(sprite:String, id:String):Howl {})
+	function play(?sprite:String, ?callBack:String -> Void):Howl;
 
-    public var rate: Float;
+	function pause(?id:String):Howl;
 
-    public var model: String;
+	function stop(?id:String):Howl;
 
-    public var onend: Void->Void;
+	function mute(?id:String):Howl;
 
-    public var onload: Void->Void;
+	function unmute(?id:String):Howl;
 
-    public var onloaderror: String->Void;
+	@:overload(function(vol:Float, ?id:String):Howl {})
+	function volume(vol:Float, ?id:String):Float;
 
-    public var onpause: Void->Void;
-
-    public var onplay: Void->Void;
-
-    /**
-     * Create an audio group controller.
-     * @param {HowlOptions} o Passed in properties for this group.
-    */
-    function new(options:HowlOptions):Void;
-
-    /**
-     * Play a sound or resume previous playback.
-     * @param {String} sprite Sprite name for sprite playback
-     * @param {Int->Void} callback with sound id to continue previous.
-     * @return {Int} Sound ID.
-     */
-    @:overload(function(sprite:String, id: String):Howl {})
-    function play(?sprite:String, ?playbackCallback: String->Void):Howl;
-
-    /**
-     * Pause playback and save current position.
-     * @param {Int} id The sound ID (empty to pause all in group).
-     * @return {Howl}
-     */
-    function pause(?id:String):Howl;
-
-    /**
-     * Stop playback and reset to start.
-     * @param {Int} id The sound ID (empty to stop all in group).
-     * @return {Howl}
-     */
-    function stop(?id:String):Howl;
-
-    /**
-     * Mute a single sound or all sounds in this Howl group.
-     * @param {Int} id The sound ID to update (omit to mute all).
-     * @return {Howl}
-     */
-    function mute(?id:String):Howl;
-
-    /**
-     * Unmute a single sound or all sounds in this Howl group.
-     * @param {Int} id The sound ID to update (omit to unmute all).
-     * @return {Howl}
-     */
-    function unmute(?id:String):Howl;
-
-    /**
-     * Fade a currently playing sound between two volumes (if no id is passsed, all sounds will fade).
-     * @param  {Float} from The value to fade from (0.0 to 1.0).
-     * @param  {Float} to The volume to fade to (0.0 to 1.0).
-     * @param  {Float} len Time in milliseconds to fade.
-     * @param  {Int} id The sound id (omit to fade all sounds).
-     * @return {Howl}
-     */
-    function fade(from:Float, to:Float, len:Int, ?callback: Void->Void, ?id:Int):Howl;
-
-    /**
-     * Get/set the position of a sound. This method can optionally take 0, 1 or 2 arguments.
-     * pos() -> Returns the first sound node's current position.
-     * pos(id) -> Returns the sound id's current position.
-     * pos(seek) -> Sets the position of the first sound node.
-     * pos(seek, id) -> Sets the position of passed sound id.
-     * @return {Howl/Float} Returns self or the current position.
-     */
-    @:overload(function(pos:Float, id:String):Dynamic {})
-    @:overload(function(pos:Float):Dynamic {})
-    @:overload(function(id:String):Float {})
-    function pos():Float;
-
-    /**
-     * Listen to a custom event.
-     * @param {String} event Event name.
-     * @param {Function} fn Listener to call.
-     * @param {Int} id (optional) Only listen to events for this sound.
-     * @return {Howl}
-     */
-    @:overload(function(event:String, fn:String -> Void, ?id:String):Howl {})
-    function on(event:String, fn:Void -> Void, ?id:String):Howl;
-
-    /**
-     * Remove a custom event.
-     * @param {String} event Event name.
-     * @param {Function} fn (optional) Listener to remove. Leave empty to remove all.
-     * @param {Number} id (optional) Only remove events for this sound.
-     * @return {Howl}
-     */
-    @:overload(function(event:String, fn:String -> Void, ?id:String):Howl {})
-    function off(event:String, ?fn:Void -> Void, ?id:String):Howl;
-
-    /**
-     * Unload and destroy the current Howl object.
-     * This will immediately stop all sound instances attached to this group.
-     */
-    function unload():Void;
-
-
-	/**
-	 * Get/set the loop parameter on a sound. This method can optionally take 0, 1.
-	 * loop() -> Returns the group's loop value.
-	 * loop(loop) -> Sets the loop value for all sounds in this Howl group.
-	 * @return {Howl/Bool} Returns current object/loop value.
-	 */
 	@:overload(function(loop:Bool):Howl {})
-	@:overload(function():Bool {})
 	function loop():Bool;
 
-    /**
-	 * Get/set the volume of this sound or of the Howl group. This method can optionally take 0, 1 or 2 arguments.
-	 * volume() -> Returns the group's volume value.
-	 * volume(id) -> Returns the sound id's current volume.
-	 * volume(vol) -> Sets the volume of all sounds in this Howl group.
-	 * volume(vol, id) -> Sets the volume of passed sound id.
-	 * @return {Howl/Float} Returns self or current volume.
-	 */
-	@:overload(function(vol:Float, id:String):Dynamic {})
-	@:overload(function(vol:Float):Dynamic {})
-	@:overload(function(id:String):Float {})
-	function volume():Float;
+	@:overload(function(sprite:SpriteParams):Howl {})
+	function sprite(sprite:SpriteParams):Dynamic;
 
-    /**
-	 * Get/set the URLs to be pulled from to play in this source. This method can optionally take 0 or 1 arguments.
-	 * urls() -> Returns the current urls.
-	 * urls(Array<String>) -> Sets the urls.
-	 * @return {Howl/Array<String>} Returns self or current urls.
-	 */
-	@:overload(function(urls:Array<String>):Howl {})
-	@:overload(function():Array<String> {})
-	function urls():Float;
+	@:overload(function(pos:Float, ?id:String):Howl {})
+	function pos(pos:Float, ?id:String):Float;
+
+	@:overload(function(x:Float, y:Float, z:Float, ?id:String):Howl {})
+	function pos3d(x:Float, y:Float, z:Float, ?id:String):Array<Float>;
+
+	function fade(f:Float, t:Float, len:Float, ?callBack:Void -> Void, ?id:String):Howl;
+
+	function fadeIn(t:Float, len:Float, callBack:Void -> Void):Howl; // deprecated
+
+	function fadeOut(t:Float, len:Float, callBack:Void -> Void, ?id:String):Howl; // deprecated
+
+	function on(event:String, ?fn:Void -> Void):Howl;
+
+	function off(event:String, ?fn:Void -> Void):Howl;
+
+	function unload():Void;
+
+	function duration():Float;
+
+
+	// Web Audio only
+	function decodeAudioData(arraybuffer:js.html.ArrayBuffer, obj:Howl, url:String):String;
+
+	function loadBuffer(obj:Howl, url:String):String;
+
+	function loadSound(obj:Howl, buffer:js.html.audio.AudioBuffer):String;
+
+	function refreshBuffer(obj:Howl, loop:Array<RefreshBufferLoopParams>, ?id:String):Void;
+}
+
+typedef RefreshBufferLoopParams = {
+	var loop:Bool;
+	var pos:Float;
+	var duration:Float;
+}
+
+typedef SpriteParams = {
+	var offset:Int;
+	var duration:Int;
+	@:optional var loop:Bool;
 }
 
 typedef HowlOptions = {
-    /**
-     * Set to true to automatically start playback when sound is loaded.
-     */
-    @:optional var autoplay:Bool;
+	@:optional var autoplay:Bool;
+	@:optional var buffer:Bool;
+	@:optional var duration:Float;
+	@:optional var format:String;
+	@:optional var loop:Bool;
+	@:optional var sprite:Dynamic;
+	@:optional var src:String;
+	@:optional var pos3d:Array<Float>;
+	@:optional var volume:Float;
+	@:optional var urls:Array<String>;
+	@:optional var rate:Float;
 
-    /**
-     * Set to true to force HTML5 Audio. This should be used for
-     * large audio files so that you don't have to wait for the full file to be downloaded and decoded before playing.
-     */
-    @:optional var buffer:Bool;
+	// allow forcing of a specific panningModel ('equalpower' or 'HRTF'),
+	// if none is specified, defaults to 'equalpower' and switches to 'HRTF'
+	// if 3d sound is used
+	@:optional var model:String;
 
-    /**
-     * howler.js automatically detects your file format from the extension, but you may also
-     * specify a format in situations where extraction won't work (such as with a SoundCloud stream).
-     */
-    @:optional var format:String;
-
-    /**
-     * Set to true to automatically loop the sound forever.
-     */
-    @:optional var loop:Bool;
-
-    /**
-     * Define a sound sprite for the sound. The offset and duration are defined in milliseconds.
-     * A third (optional) parameter is available to set a sprite as looping.
-     *    {
-     *      key: [offset, duration, (loop)]
-     *    }
-     */
-    @:optional var sprite:Dynamic;
-
-    /**
-     * The volume of the specific track, from 0.0 to 1.0.
-     */
-    @:optional var volume:Float;
-
-    /**
-     * The sources to the track(s) to be loaded for the sound (URLs or base64 data URIs).
-     * These should be in order of preference, howler.js will automatically load the first
-     * one that is compatible with the current browser. If your files have no extensions,
-     * you will need to explicitly specify the extension using the ext property.
-     */
-    @:optional var urls:Array<String>;
-
-    /**
-     *  The rate of playback (Web Audio API only).
-     *  1.0 is normal speed, while negative values play in reverse.
-     */
-    @:optional var rate:Float;
-
-    /**
-     *  Sets the panningModel used by Web Audio API.
-     *  Usually this should not be touched as howler handles it automatically,
-     *  but it can be overridden with equalpower or HRTF.
-     */
-    @:optional var model:String;
-
-    /**
-     * Fires when the sound is loaded.
-     */
-    @:optional var onload:Void -> Void;
-    /**
-     * Fires when the sound is unable to load.
-     */
-    @:optional var onloaderror:String -> Void;
-    /**
-     * Fires when the sound finishes playing (if it is looping, it'll fire at the end of each loop).
-     * The first parameter is the ID of the sound.
-     */
-    @:optional var onend:String -> Void;
-    /**
-     * Fires when the sound has been paused.
-     * The first parameter is the ID of the sound.
-     */
-    @:optional var onpause:String -> Void;
-    /**
-     * Fires when the sound begins playing.
-     * The first parameter is the ID of the sound.
-     */
-    @:optional var onplay:String -> Void;
+	@:optional var onload:Void -> Void;
+	@:optional var onloaderror:String -> Void;
+	@:optional var onend:String -> Void;
+	@:optional var onpause:String -> Void;
+	@:optional var onplay:Void -> Void;
 }

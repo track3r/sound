@@ -16,60 +16,47 @@ class Sound
 {
     public var volume(default,set): Float = 1.0;
     public var loop(default,set): Bool = false;
-    public var fileUrl: String;
 
     public var currentSoundIds: Array<String> = [];
 
-    private var blob: Blob;
     private var howl: Howl;
-    private var isPaused: Bool = false;
+    private var paused: Bool = false;
 
-    private function new() {}
-
-    public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
+    public static function load(url: String, loadCallback: sound.Sound -> Void): Void
     {
-        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == -1 &&
-            fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == -1)
+        new Sound(url, loadCallback);
+    }
+
+    private function new(url: String, loadCallback: Sound->Void)
+    {
+        var data = FileSystem.instance().getData(url);
+
+        if (data != null)
         {
-            trace('ERROR playing sound URL=${fileUrl}. Sounds not supported outside the assets.');
-            loadCallback(null);
+            howl = new Howl({
+                urls: [URL.createObjectURL(new Blob([data.arrayBuffer]))],
+                format: "mp3",
+                onload: function() {
+                    loadCallback(this);
+                },
+                onloaderror: function(error: String)
+                {
+                    howl = null;
+                    trace('ERROR loading sound URL=${url} ($error).');
+                },
+                onend: function(id: String) {
+                    if (howl != null && !howl.loop())
+                    {
+                        currentSoundIds.remove(id);
+                    }
+                }
+            });
         }
         else
         {
-            var soundObject = new Sound();
-            soundObject.loadSoundFile(fileUrl, loadCallback);
+            trace('ERROR loading sound URL=${url}. Sounds are not supported outside the assets.');
+            loadCallback(this);
         }
-    }
-
-    private function loadSoundFile(url: String, loadCallback: Sound->Void): Void
-    {
-        fileUrl = url;
-
-        var data = FileSystem.instance().getData(fileUrl);
-
-        blob = new Blob([data.arrayBuffer]);
-        var blobUrl = URL.createObjectURL(blob, {type: "audio/mpeg"});
-
-        howl = new Howl({
-            urls: [blobUrl],
-            format: "mp3",
-            onload: function() {
-                loadCallback(this);
-            },
-            onloaderror: function(error: String)
-            {
-                trace ("[Sound] error loading file with url " + fileUrl + "with error " + error);
-            },
-            onend: function(id: String) {
-                if (howl == null)
-                    return;
-
-                if (!howl.loop())
-                {
-                    currentSoundIds.remove(id);
-                }
-            }
-        });
     }
 
     public function play(): Void
@@ -77,14 +64,14 @@ class Sound
         if (howl == null)
             return;
 
-        if (isPaused)
+        if (paused)
         {
             for (id in currentSoundIds)
             {
                 howl.play(null, id);
             }
 
-            isPaused = false;
+            paused = false;
         }
         else
         {
@@ -105,21 +92,27 @@ class Sound
         }
 
         currentSoundIds = [];
-        isPaused = false;
+        paused = false;
     }
 
     public function pause(): Void
     {
+        if (howl == null || currentSoundIds.length == 0)
+            return;
+
         for (id in currentSoundIds)
         {
             howl.pause(id);
         }
 
-        isPaused = true;
+        paused = true;
     }
 
     public function mute(): Void
     {
+        if (howl == null)
+            return;
+
         for (id in currentSoundIds)
         {
             howl.mute(id);
@@ -130,15 +123,21 @@ class Sound
     private function set_volume(value: Float): Float
     {
         volume = value;
-        howl.volume(value);
-        return volume;
+        if (howl != null)
+        {
+            howl.volume(value);
+        }
+        return value;
     }
 
     /// here you can do platform specific logic to make the sound loop
     private function set_loop(value: Bool): Bool
     {
         loop = value;
-        howl.loop(value);
-        return loop;
+        if (howl != null)
+        {
+            howl.loop(value);
+        }
+        return value;
     }
 }

@@ -3,150 +3,153 @@
  * This document is strictly confidential and sole property of GameDuell GmbH, Berlin, Germany
  */
 package sound;
+
 import filesystem.FileSystem;
 import msignal.Signal.Signal1;
+
+import js.html.Blob;
+import js.html.URL;
+
+import howler.Howl;
+
 /**
  * @author kgar
  */
 class Music
 {
-    public var volume(default,set): Float;
-    public var loop(default,set): Bool;
+    public var volume(default,set): Float = 1.0;
+    public var loop(default,set): Bool = false;
     public var length(get,null): Float;
     public var position(get,null): Float;
     public var loadCallback: sound.Music -> Void;
-    public var fileUrl: String;
-    public var onPlaybackComplete(default,null): Signal1<Music>;
+    public var onPlaybackComplete(default,null): Signal1<Music> = new Signal1();
 
-    private var musicInstance: createjs.soundjs.SoundInstance;
-    private var isPaused: Bool;
-    private static var pluginsRegistered: Bool = false;
+    private var paused: Bool = false;
+    private var soundId: String;
+    private var howl: Howl;
 
     /// useless on this target
     public static var allowNativePlayer(default, default): Bool;
 
-    public function new()
+    public static function load(url: String,loadCallback: sound.Music -> Void): Void
     {
-        isPaused = false;
-        loop = false;
-        volume = 1.0;
-        onPlaybackComplete = new Signal1();
+        new Music(url, loadCallback);
     }
 
-    public static function load(fileUrl: String,loadCallback: sound.Music -> Void): Void
+    private function new(url: String, loadCallback: Music->Void)
     {
-        if (fileUrl.indexOf(FileSystem.instance().getUrlToStaticData()) == 0)
+        var data = FileSystem.instance().getData(url);
+
+        if (data != null)
         {
-            fileUrl = fileUrl.substr(FileSystem.instance().getUrlToStaticData().length);
+            howl = new Howl({
+                urls: [URL.createObjectURL(new Blob([data.arrayBuffer]))],
+                format: "mp3",
+                onload: function() {
+                    loadCallback(this);
+                },
+                onloaderror: function(error: String)
+                {
+                    howl = null;
+                    trace('ERROR loading music URL=${url} ($error).');
+                },
+                onend: function(id: String) {
+                    if (howl == null)
+                        return;
 
-            var pos: Int = 0;
-            while (pos < fileUrl.length && fileUrl.charAt(pos) == "/")
-            {
-                pos++;
-            }
-            fileUrl = fileUrl.substr(pos);
-
-            fileUrl = "assets/" + fileUrl;
+                    if (!howl.loop())
+                    {
+                        soundId = null;
+                        if (onPlaybackComplete != null)
+                        {
+                            onPlaybackComplete.dispatch(this);
+                        }
+                    }
+                }
+            });
         }
-        else if (fileUrl.indexOf(FileSystem.instance().getUrlToCachedData()) == 0 ||
-        fileUrl.indexOf(FileSystem.instance().getUrlToTempData()) == 0)
+        else
         {
-            throw "Sounds not supported outside the assets";
-        }
-        var music: Music = new Music();
-        music.loadCallback = loadCallback;
-        music.fileUrl = fileUrl;
-        music.loadSoundFile();
-    }
-
-    private function loadSoundFile(): Void
-    {
-        SoundLoader.getInstance().soundLoaded.add(soundHandleLoad);
-        SoundLoader.getInstance().loadSound(fileUrl);
-    }
-
-    private function soundHandleLoad(soundID: String): Void
-    {
-        if(soundID == this.fileUrl)
-        {
-            if(this.loadCallback != null)
-            {
-                this.loadCallback(this);
-            }
+            trace('ERROR loading music URL=${url}. Sounds are not supported outside the assets.');
+            loadCallback(this);
         }
     }
 
     public function play(): Void
     {
-        if(isPaused && musicInstance != null)
+        if (howl == null)
+            return;
+
+        if (paused && soundId != null)
         {
-            musicInstance.resume();
-            isPaused = false;
+            howl.play(null, soundId);
+            paused = false;
             return;
         }
 
-        if(musicInstance != null)
+        if (soundId != null)
         {
-            stop();
+            howl.stop(soundId);
+            soundId = null;
         }
 
-        var loopsCount = 9999;
-        if(!loop)
-        {
-            loopsCount = 0;
-        }
-        musicInstance = createjs.soundjs.Sound.play(fileUrl, null, 0, 0, loopsCount);
-        musicInstance.on("complete", this.handlePlayComplete, this);
-        musicInstance.volume = volume;
+        howl.play(function(id: String) {
+            soundId = id;
+        });
     }
 
-    private function handlePlayComplete(): Void
-    {
-        if(onPlaybackComplete != null)
-        {
-            onPlaybackComplete.dispatch(this);
-        }
-    }
     public function stop(): Void
     {
-        if(musicInstance != null)
+        if (howl == null)
+            return;
+
+        if (soundId != null)
         {
-            musicInstance.stop();
-            musicInstance = null;
+            howl.stop(soundId);
+            soundId = null;
+            if (onPlaybackComplete != null)
+            {
+                onPlaybackComplete.dispatch(this);
+            }
         }
+        paused = false;
     }
 
     public function pause(): Void
     {
-        if(musicInstance != null)
+        if (howl != null && soundId != null)
         {
-            isPaused = true;
-            musicInstance.pause();
+            paused = true;
+            howl.pause(soundId);
         }
     }
 
     public function mute(): Void
     {
-        if(musicInstance != null)
+        if (howl != null && soundId != null)
         {
-            musicInstance.setMute(true);
+            howl.mute(soundId);
         }
     }
 
     /// here you can do platform specific logic to set the sound volume
     private function set_volume(value: Float): Float
     {
-        volume = value;
-        if(musicInstance != null)
+        if (howl != null)
         {
-            musicInstance.volume = volume;
+            howl.volume(value);
         }
+        volume = value;
         return volume;
     }
 
     /// here you can do platform specific logic to make the sound loop
     private function set_loop(value: Bool): Bool
     {
+        if (howl != null)
+        {
+            howl.loop(value);
+        }
         loop = value;
         return loop;
     }
@@ -154,20 +157,20 @@ class Music
     /// get the length of the current sound
     private function get_length(): Float
     {
-        if(musicInstance == null)
+        if (howl == null || soundId == null)
         {
             return 0.0;
         }
-        return musicInstance.getDuration();
+        return howl.duration();
     }
 
     /// get the current time of the current sound
     private function get_position(): Float
     {
-        if(musicInstance == null)
+        if (howl == null || soundId == null)
         {
             return 0.0;
         }
-        return musicInstance.getPosition();
+        return howl.pos(null, soundId) % length;
     }
 }

@@ -146,26 +146,17 @@ class SoundScene extends Scene
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (soundTrack != null)
-            {
-                soundTrack.loop = true;
-                soundTrack.play();
-            }
+            soundTrack.loop = true;
+            soundTrack.play();
         });
 
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (soundTrack != null)
-            {
-                soundTrack.stop();
-            }
+            soundTrack.stop();
         });
         pauseBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (soundTrack != null)
-            {
-                soundTrack.pause();
-            }
+            soundTrack.pause();
         });
 
         playBtn2 = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
@@ -186,26 +177,16 @@ class SoundScene extends Scene
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (music != null)
-            {
-                music.loop = true;
-                music.volume = 0.2;
-                music.play();
-            }
+            music.loop = true;
+            music.play();
         });
         stopBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (music != null)
-            {
-                music.stop();
-            }
+            music.stop();
         });
         pauseBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            if (music != null)
-            {
-                music.pause();
-            }
+            music.pause();
         });
 
 
@@ -217,14 +198,16 @@ class SoundScene extends Scene
         var dragComponent:DragComponent = new DragComponent();
         volumeBtn.add(dragComponent);
 
+        var dragMin = 100;
+        var dragMax = 200;
+
         dragComponent.onDrag.add(function(deltaX: Float, deltaY: Float)
         {
             var newY = Math.round(volumeBtn.transform.y + deltaY);
-            if(newY>99 && newY<201 )
+            if(newY >= dragMin && newY <= dragMax )
             {
-                var volumeIncrement = deltaY/100;
                 volumeBtn.transform.y = newY;
-                music.volume = music.volume + volumeIncrement;
+                music.volume = (newY - dragMin) / (dragMax - dragMin);
                 trace("Volume is: " + music.volume);
             }
         });

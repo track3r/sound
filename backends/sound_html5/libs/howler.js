@@ -498,7 +498,8 @@
           node.id = soundId;
           node.paused = false;
           refreshBuffer(self, [loop, loopStart, loopEnd], soundId);
-          // keeps the start time for each node independently
+          self._playStart = ctx.currentTime;
+          // additionally keeps the start time for each node independently
           node._playStart = ctx.currentTime;
           node.gain.value = self._volume;
 
@@ -935,6 +936,14 @@
         // fire ended event
         self.on('end');
       }, id);
+    },
+
+    /**
+     * Returns duration.
+     * @return {Float}
+     */
+    duration: function() {
+      return this._duration;
     },
 
     /**
