@@ -25,19 +25,24 @@
  */
 
 package sound;
-import msignal.Signal;
-import types.Data;
+
 import cpp.Lib;
+
+private enum SoundState
+{
+    STOPPED;
+    PLAYING;
+    PAUSED;
+}
 
 class Sound
 {
     public var volume(default, set): Float;
-    public var loop(default, set): Bool;
+    public var loop(default, default): Bool;
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
 
     ///Native function references
-    private static var registerCallbackNativeFunc = Lib.load("soundios","soundios_registerCallback",1);
     private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
     private static var playNativeFunc = Lib.load("soundios","soundios_play",3);
     private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
@@ -47,12 +52,14 @@ class Sound
 
     private var nativeSoundHandle: Dynamic;
     private var nativeSoundChannel: Dynamic;
-    private var isPaused: Bool = false;
+    private var state: SoundState;
 
     private function new()
     {
         loop = false;
         volume = 1.0;
+
+        state = SoundState.STOPPED;
     }
 
     public static function load(fileUrl: String,loadCallback: sound.Sound -> Void): Void
@@ -73,55 +80,67 @@ class Sound
 
     private function loadSoundFile(): Void
     {
-        registerCallbackNativeFunc(onSoundLoadedCallback);
-        initializeNativeFunc(fileUrl, this);
+        initializeNativeFunc(fileUrl, onSoundLoadedCallback);
     }
 
     private function onSoundLoadedCallback(nativeSoundHandle: Dynamic, length: Float): Void
     {
         this.nativeSoundHandle = nativeSoundHandle;
-        if(this.loadCallback != null)
+
+        if (loadCallback != null)
         {
-            this.loadCallback(this);
+            loadCallback(this);
         }
     }
+
     public function play(): Void
     {
-        if(nativeSoundHandle != null)
+        if (nativeSoundHandle != null)
         {
-            if(isPaused)
+            if (state == SoundState.PAUSED && nativeSoundChannel != null)
             {
-                isPaused = false;
-                pauseNativeFunc(nativeSoundChannel,false);
+                pauseNativeFunc(nativeSoundChannel, false);
             }
             else
             {
-                stop();
+                if (state != SoundState.STOPPED)
+                {
+                    stop();
+                }
+
                 nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume, loop);
+
+                if (!nativeSoundChannel)
+                {
+                    setVolumeNativeFunc(nativeSoundChannel, volume);
+                }
             }
+            state = SoundState.PLAYING;
         }
     }
 
     public function stop(): Void
     {
-        if(nativeSoundChannel != null)
+        if (state != SoundState.STOPPED && nativeSoundChannel != null)
         {
             stopNativeFunc(nativeSoundChannel);
+            nativeSoundChannel = null;
+            state = SoundState.STOPPED;
         }
     }
 
     public function pause(): Void
     {
-        if(nativeSoundChannel != null)
+        if (state == SoundState.PLAYING && nativeSoundChannel != null)
         {
-            isPaused = true;
             pauseNativeFunc(nativeSoundChannel,true);
+            state = SoundState.PAUSED;
         }
     }
 
     public function mute(): Void
     {
-        if(nativeSoundChannel != null)
+        if (nativeSoundChannel != null)
         {
             setMuteNativeFunc(nativeSoundChannel, true);
         }
@@ -131,17 +150,11 @@ class Sound
     private function set_volume(value: Float): Float
     {
         volume = value;
-        if(nativeSoundChannel != null)
+        if (nativeSoundChannel != null)
         {
             setVolumeNativeFunc(nativeSoundChannel, volume);
         }
         return volume;
     }
 
-    /// here you can do platform specific logic to make the sound loop
-    private function set_loop(value: Bool): Bool
-    {
-        loop = value;
-        return loop;
-    }
 }

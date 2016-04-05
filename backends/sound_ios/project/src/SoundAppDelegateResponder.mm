@@ -46,22 +46,30 @@
 
 - (void) setWillEnterForegroundCallback:(value)callback
 {
+    val_check_function(callback, 0);
     _willEnterForegroundCallback = new AutoGCRoot(callback);
 }
 
 - (void) setWillEnterBackgroundCallback:(value)callback
 {
+    val_check_function(callback, 0);
     _willEnterBackgroundCallback = new AutoGCRoot(callback);
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    val_call0(_willEnterForegroundCallback->get());
+    if (NULL != _willEnterForegroundCallback)
+    {
+        val_call0(_willEnterForegroundCallback->get());
+    }
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    val_call0(_willEnterBackgroundCallback->get());
+    if (NULL != _willEnterBackgroundCallback)
+    {
+        val_call0(_willEnterBackgroundCallback->get());
+    }
 }
 
 - (void) dealloc

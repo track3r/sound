@@ -23,7 +23,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #ifndef STATIC_LINK
 #define IMPLEMENT_API
 #endif
@@ -32,19 +32,6 @@
 #import "ObjectAL.h"
 #import "OALAudioTrackNotifications.h"
 #include "SoundAppDelegateResponder.h"
-
-/// sound Effects
-value *__soundLoadComplete = NULL;
-value *__currentSound = NULL;
-NSString *filePath;
-
-/// Background Music
-OALAudioTrack* musicTrack;
-value *__musicLoadComplete = NULL;
-value *__musicStoppedPlaying = NULL;
-
-/// Native player
-bool __allowNativePlayer = true;
 
 static SoundAppDelegateResponder *responder;
 
@@ -56,7 +43,7 @@ static SoundAppDelegateResponder *responder;
 void soundios_setDeviceConfig()
 {
     /// Do we want to keep the ipod music running or not?
-    [OALAudioSession sharedInstance].allowIpod = __allowNativePlayer;
+    [OALAudioSession sharedInstance].allowIpod = true;
 
     /// If YES no other application will be able to start playing audio if it wasn't playing already.
     [OALAudioSession sharedInstance].useHardwareIfAvailable = NO;
@@ -71,34 +58,27 @@ void soundios_setDeviceConfig()
 /// convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
 {
-    const char *aHaxeChars = val_get_string(aHaxeString);
-
-    NSString *aNSString = [NSString stringWithUTF8String:aHaxeChars];
-    return aNSString;
+    return [NSString stringWithUTF8String:val_get_string(aHaxeString)];
 }
 //----------------------------------------------------------------------
-void registerMusicNotification(OALAudioTrack* track, NSString* name)
-{
-    NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
-    [notifyCenter addObserverForName:nil
-                              object:track
-                               queue:nil
-                          usingBlock:^(NSNotification* notification)
-                          {
-                                if ([[notification name] isEqualToString:OALAudioTrackStoppedPlayingNotification])
-                                {
-                                        if(__musicStoppedPlaying != NULL)
-                                        {
-                                            /// notify the user
-                                            val_call1(*__musicStoppedPlaying, alloc_string(name.UTF8String));
-                                        }
-                                }
-                          }];
-
-}
 void unregisterNotification(OALAudioTrack* track)
 {
     [[NSNotificationCenter defaultCenter] removeObserver:track];
+}
+void registerMusicNotification(OALAudioTrack* track, value onStopCallback)
+{
+    [[NSNotificationCenter defaultCenter]
+            addObserverForName:OALAudioTrackFinishedPlayingNotification
+                        object:track
+                         queue:nil
+                    usingBlock:^(NSNotification* notification)
+                    {
+                        if (!val_is_null(onStopCallback))
+                        {
+                          val_call0(onStopCallback);
+                        }
+                        unregisterNotification(track);
+                    }];
 }
 
 /** Creating Sound Haxe Pointer*/
@@ -126,6 +106,7 @@ DEFINE_KIND(k_SoundChannelHandle);
 static void soundChannelFinalizer(value abstract_object)
 {
      id<ALSoundSource> s = (id<ALSoundSource>)val_data(abstract_object);
+     [s stop];
      [s release];
 }
 
@@ -147,32 +128,13 @@ static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
 
 /** Creating Music Haxe Pointer*/
 
-DEFINE_KIND(k_MusicFileHandle);
-static void musicFinalizer(value abstract_object)
-{
-     NSString* s = (NSString *)val_data(abstract_object);
-     [s release];
-}
-static value createHaxePointerForMusicHandle(NSString *musicFilePath)
-{
-    [musicFilePath retain];
-    value v;
-    v = alloc_abstract(k_MusicFileHandle, musicFilePath);
-    val_gc(v, (hxFinalizer) &musicFinalizer);
-    return v;
-}
-
-
-static NSString* getMusicFileHandleFromHaxePointer(value musicPath)
-{
-    return (NSString *)val_data(musicPath);
-}
 DEFINE_KIND(k_MusicChannelHandle);
 static void musicChannelFinalizer(value abstract_object)
 {
-     OALAudioTrack* musicTrack = (OALAudioTrack*)val_data(abstract_object);
-     unregisterNotification(musicTrack);
-     [musicTrack release];
+    OALAudioTrack* musicTrack = (OALAudioTrack*)val_data(abstract_object);
+    [musicTrack stop];
+    unregisterNotification(musicTrack);
+    [musicTrack release];
 }
 
 static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
@@ -183,7 +145,6 @@ static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
     return v;
 }
 
-
 static OALAudioTrack* getMusicChannelFromHaxePointer(value musicChannel)
 {
     return (OALAudioTrack*)val_data(musicChannel);
@@ -193,24 +154,12 @@ static OALAudioTrack* getMusicChannelFromHaxePointer(value musicChannel)
 // Sound Effects
 //====================================================================
 
-///-------------------------------------------------------------------
-static value soundios_registerCallback(value callback)
+static value soundios_initialize(value soundPath, value onComplete)
 {
-    val_check_function(callback, 2); // Is Func ?
+    val_check_function(onComplete, 2);
 
-    if(__soundLoadComplete == NULL)
-    {
-        __soundLoadComplete = alloc_root();
-    }
-    *__soundLoadComplete = callback;
-    return alloc_null();
-}
-DEFINE_PRIM (soundios_registerCallback, 1);
-///--------------------------------------------------------------------
-static value soundios_initialize(value soundPath, value currentSound)
-{
     soundios_setDeviceConfig();
-    filePath = valueToNSString(soundPath);
+    NSString *filePath = valueToNSString(soundPath);
 
     // This loads the sound effects into memory so that
     // there's no delay when we tell it to play them.
@@ -218,7 +167,7 @@ static value soundios_initialize(value soundPath, value currentSound)
 
     value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
 
-    val_call2(*__soundLoadComplete, hxSoundHandle, alloc_float(buffer.duration * 1000));
+    val_call2(onComplete, hxSoundHandle, alloc_float(buffer.duration * 1000));
     return alloc_null();
 }
 DEFINE_PRIM(soundios_initialize,2);
@@ -285,62 +234,40 @@ DEFINE_PRIM(soundios_setMute,2);
 // Background Music
 //====================================================================
 
-static value musicios_initialize(value filePath)
+static value musicios_initialize(value filePath, value onStopCallback)
 {
+    val_check_function(onStopCallback, 0);
+
     soundios_setDeviceConfig();
     /// convert to NSString
     NSString* musicPath = valueToNSString(filePath);
 
-    musicTrack = [[OALAudioTrack alloc] init];
+    OALAudioTrack* musicTrack = [[OALAudioTrack alloc] init];
     [musicTrack retain];
+
+    value haxePointer = createHaxePointerForMusicChannelHandle(musicTrack);
 
     /// preload the music file
     [musicTrack preloadFile:musicPath];
-    registerMusicNotification(musicTrack, musicPath);
 
-    value hxMusicHandle = createHaxePointerForSoundHandle(musicPath);
+    registerMusicNotification(musicTrack, onStopCallback);
 
-    val_call1(*__musicLoadComplete, hxMusicHandle);
-    return createHaxePointerForMusicChannelHandle(musicTrack);
+    return haxePointer;
 }
-DEFINE_PRIM(musicios_initialize,1);
+DEFINE_PRIM(musicios_initialize,2);
 
 ///--------------------------------------------------------------------
-
-static value musicios_registerCallback(value loadFinishCallback, value musicFinishPlayingCallback)
+static value musicios_play(value musicSrc, value volume, value loop)
 {
-    val_check_function(loadFinishCallback, 1); // Is Func ?
-    val_check_function(musicFinishPlayingCallback, 1); // Is Func ?
+    OALAudioTrack* musicTrack = getMusicChannelFromHaxePointer(musicSrc);
 
-    if(__musicLoadComplete == NULL)
-    {
-        __musicLoadComplete = alloc_root();
-    }
-    *__musicLoadComplete = loadFinishCallback;
-
-    if(__musicStoppedPlaying == NULL)
-    {
-        __musicStoppedPlaying = alloc_root();
-    }
-    *__musicStoppedPlaying = musicFinishPlayingCallback;
-
-    return alloc_null();
-}
-DEFINE_PRIM (musicios_registerCallback, 2);
-///--------------------------------------------------------------------
-
-///--------------------------------------------------------------------
-static value musicios_play(value filePath, value volume, value loop)
-{
-    /// convert to NSString
-    NSString* musicPath = valueToNSString(filePath);
-
-    [musicTrack playFile:musicPath loops:val_bool(loop) ? -1 : 0];
     musicTrack.volume = val_float(volume);
+    musicTrack.numberOfLoops = val_bool(loop) ? -1 : 0;
+    [musicTrack play];
 
     return alloc_null();
 }
-DEFINE_PRIM(musicios_play,3);
+DEFINE_PRIM (musicios_play, 3);
 
 ///--------------------------------------------------------------------
 static value musicios_stop(value musicSrc)
@@ -353,7 +280,7 @@ DEFINE_PRIM(musicios_stop,1);
 ///--------------------------------------------------------------------
 static value musicios_pause(value musicSrc, value pause)
 {
-    getMusicChannelFromHaxePointer(musicSrc).paused = (bool)val_bool(pause);
+    getMusicChannelFromHaxePointer(musicSrc).paused = val_bool(pause);
 
     return alloc_null();
 }
@@ -378,9 +305,7 @@ DEFINE_PRIM(musicios_setMute,2);
 ///--------------------------------------------------------------------
 static value musicios_setAllowNativePlayer(value allowNativePlayer)
 {
-    __allowNativePlayer = val_bool(allowNativePlayer);
-
-    [OALAudioSession sharedInstance].allowIpod = __allowNativePlayer;
+    [OALAudioSession sharedInstance].allowIpod = val_bool(allowNativePlayer);
 
     return alloc_null();
 }

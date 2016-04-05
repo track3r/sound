@@ -27,30 +27,32 @@
 package scenes;
 
 import duellkit.DuellKit;
-import sound.Music;
+
+import renderer.texture.Texture2D;
+
 import filesystem.FileSystem;
-import game_engine.extra.AssetManager;
+
+import game_engine.dust.Entity;
+import game_engine.core.CheckBox;
+import game_engine.core.Text;
+import game_engine.core.SimpleButton;
+import game_engine.core.Scene;
+import game_engine.components.ui.CheckBoxStateConfig;
 import game_engine.components.text.BMFontTextGenerator;
 import game_engine.systems.TextSystem;
 import game_engine.systems.RelationSystem;
 import game_engine.systems.Camera2DSystem;
 import game_engine.systems.Transform2DSystem;
 import game_engine.systems.Sprite2DSystem;
-import game_engine.components.ui.CheckBoxStateConfig;
 import game_engine.systems.ui.CheckBoxSystem;
 import game_engine.systems.ui.SimpleButtonSystem;
+import game_engine.extra.AssetManager;
+
 import game_engine_extensions.dragging.components.DragComponent;
 import game_engine_extensions.dragging.systems.DragSystem;
-import game_engine.core.CheckBox;
-import game_engine.core.Text;
-import game_engine.core.SimpleButton;
-import renderer.texture.Texture2D;
-import game_engine.core.Scene;
-import game_engine.core.Sprite;
 
 import sound.Sound;
-import game_engine.dust.Entity;
-import game_engine_extensions.dragging.components.DragComponent;
+import sound.Music;
 
 class SoundScene extends Scene
 {
@@ -95,8 +97,8 @@ class SoundScene extends Scene
     private static var nativePlayerCheckBox: CheckBox;
 
     //sound
-    private var soundTrack: Sound;
-    private var music: Music;
+    private var sound: Array<Sound>;
+    private var music: Array<Music>;
 
     override public function initScene(): Void
     {
@@ -167,17 +169,16 @@ class SoundScene extends Scene
 
         playBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            soundTrack.loop = true;
-            soundTrack.play();
+            sound[0].play();
         });
 
         stopBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            soundTrack.stop();
+            sound[0].stop();
         });
         pauseBtn.settings.onButtonUp.add(function(btn: Entity)
         {
-            soundTrack.pause();
+            sound[0].pause();
         });
 
         playBtn2 = new SimpleButton(playBtnUpTexture,playBtnOverTexture, playBtnDownTexture);
@@ -198,16 +199,16 @@ class SoundScene extends Scene
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music.loop = true;
-            music.play();
+            music[0].loop = true;
+            music[0].play();
         });
         stopBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music.stop();
+            music[0].stop();
         });
         pauseBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music.pause();
+            music[0].pause();
         });
 
 
@@ -228,8 +229,7 @@ class SoundScene extends Scene
             if(newY >= dragMin && newY <= dragMax )
             {
                 volumeBtn.transform.y = newY;
-                music.volume = (newY - dragMin) / (dragMax - dragMin);
-                trace("Volume is: " + music.volume);
+                music[0].volume = (newY - dragMin) / (dragMax - dragMin);
             }
         });
     }
@@ -289,25 +289,88 @@ class SoundScene extends Scene
     override public function sceneWillAppear(): Void
     {
         createButtons();
-        loadSound("Loop_drums.mp3", "Loop_synth.mp3");
+        loadSound();
     }
 
-    private function loadSound(filename: String, filename2: String): Void
+    private function loadSound(): Void
     {
-        var fileUrl: String = FileSystem.instance().getUrlToStaticData() + "/" + filename;
-        var fileUrl2: String = FileSystem.instance().getUrlToStaticData() + "/" + filename2;
-
-        Music.load(fileUrl2, function(m: Music)
+        music = [];
+        for (i in 0...1)
         {
-            trace("Music Loaded");
-            music = m;
-        });
-        Sound.load(fileUrl, function(s: sound.Sound)
-        {
-            trace("Sound Loaded");
-            soundTrack = s;
-        });
+            Music.load('${FileSystem.instance().getUrlToStaticData()}/music_0.mp3', function(m: Music)
+            {
+                music.push(m);
+            });
+        }
 
+        sound = [];
+        for (i in 0...20)
+        {
+            Sound.load('${FileSystem.instance().getUrlToStaticData()}/sfx_$i.mp3', function(s: sound.Sound)
+            {
+                sound.push(s);
+            });
+        }
     }
+
+#if performancetest
+
+    override public function preUpdateScene(deltaTime: Float): Void
+    {
+        playRandomMusicAction();
+        playRandomSoundAction();
+        cpp.vm.Gc.run(true);
+    }
+
+    private function playRandomSoundAction(): Void
+    {
+        var i = Std.random(sound.length);
+        var o = sound[i];
+
+        if (o == null) return;
+
+        switch (Std.random(5))
+        {
+            case 0:
+                o.play();
+            case 1:
+                o.pause();
+            case 2:
+                o.stop();
+            case 3:
+                o.volume = Math.random();
+            case 4:
+                o.loop = Std.random(2) == 0;
+            default:
+        }
+    }
+
+    private function playRandomMusicAction(): Void
+    {
+        var i = Std.random(music.length);
+        var o = music[i];
+
+        if (o == null) return;
+
+        switch (Std.random(6))
+        {
+            case 0:
+                o.play();
+            case 1:
+                o.pause();
+            case 2:
+                o.stop();
+            case 3:
+                o.volume = Math.random();
+            case 4:
+                o.loop = Std.random(2) == 0;
+            case 5:
+                Music.allowNativePlayer = Std.random(2) == 0;
+            default:
+        }
+    }
+
+#end
+
 
 }
