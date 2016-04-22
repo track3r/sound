@@ -26,8 +26,6 @@
 
 package sound;
 
-import cpp.Lib;
-
 private enum SoundState
 {
     STOPPED;
@@ -42,23 +40,13 @@ class Sound
     public var loadCallback: sound.Sound -> Void;
     public var fileUrl: String;
 
-    ///Native function references
-    private static var initializeNativeFunc = Lib.load("soundios","soundios_initialize",2);
-    private static var playNativeFunc = Lib.load("soundios","soundios_play",3);
-    private static var stopNativeFunc = Lib.load("soundios","soundios_stop",1);
-    private static var pauseNativeFunc = Lib.load("soundios","soundios_pause",2);
-    private static var setVolumeNativeFunc = Lib.load("soundios","soundios_setVolume",2);
-    private static var setMuteNativeFunc = Lib.load("soundios","soundios_setMute",2);
-
-    private var nativeSoundHandle: Dynamic;
-    private var nativeSoundChannel: Dynamic;
+    private var nativeSound: Dynamic;
     private var state: SoundState;
 
     private function new()
     {
         loop = false;
         volume = 1.0;
-
         state = SoundState.STOPPED;
     }
 
@@ -80,12 +68,7 @@ class Sound
 
     private function loadSoundFile(): Void
     {
-        initializeNativeFunc(fileUrl, onSoundLoadedCallback);
-    }
-
-    private function onSoundLoadedCallback(nativeSoundHandle: Dynamic, length: Float): Void
-    {
-        this.nativeSoundHandle = nativeSoundHandle;
+        IOSSound.getInstance().preloadSFX(fileUrl);
 
         if (loadCallback != null)
         {
@@ -95,64 +78,54 @@ class Sound
 
     public function play(): Void
     {
-        if (nativeSoundHandle != null)
+        if (state == SoundState.PAUSED && nativeSound != null)
         {
-            if (state == SoundState.PAUSED && nativeSoundChannel != null)
-            {
-                pauseNativeFunc(nativeSoundChannel, false);
-            }
-            else
-            {
-                if (state != SoundState.STOPPED)
-                {
-                    stop();
-                }
-
-                nativeSoundChannel = playNativeFunc(nativeSoundHandle, volume, loop);
-
-                if (!nativeSoundChannel)
-                {
-                    setVolumeNativeFunc(nativeSoundChannel, volume);
-                }
-            }
-            state = SoundState.PLAYING;
+            IOSSound.getInstance().setSFXPause(nativeSound, false);
         }
+        else
+        {
+            if (state != SoundState.STOPPED)
+            {
+                stop();
+            }
+
+            nativeSound = IOSSound.getInstance().playSFX(fileUrl, volume, loop);
+        }
+        state = SoundState.PLAYING;
     }
 
     public function stop(): Void
     {
-        if (state != SoundState.STOPPED && nativeSoundChannel != null)
+        if (state != SoundState.STOPPED && nativeSound != null)
         {
-            stopNativeFunc(nativeSoundChannel);
-            nativeSoundChannel = null;
+            IOSSound.getInstance().stopSFX(nativeSound);
             state = SoundState.STOPPED;
         }
     }
 
     public function pause(): Void
     {
-        if (state == SoundState.PLAYING && nativeSoundChannel != null)
+        if (state == SoundState.PLAYING && nativeSound != null)
         {
-            pauseNativeFunc(nativeSoundChannel,true);
+            IOSSound.getInstance().setSFXPause(nativeSound, true);
             state = SoundState.PAUSED;
         }
     }
 
     public function mute(): Void
     {
-        if (nativeSoundChannel != null)
+        if (nativeSound != null)
         {
-            setMuteNativeFunc(nativeSoundChannel, true);
+            IOSSound.getInstance().setSFXMute(nativeSound, true);
         }
     }
 
-    /// here you can do platform specific logic to set the sound volume
     private function set_volume(value: Float): Float
     {
         volume = value;
-        if (nativeSoundChannel != null)
+        if (nativeSound != null)
         {
-            setVolumeNativeFunc(nativeSoundChannel, volume);
+            IOSSound.getInstance().setSFXVolume(nativeSound, volume);
         }
         return volume;
     }

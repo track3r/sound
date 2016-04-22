@@ -27,335 +27,186 @@
 #ifndef STATIC_LINK
 #define IMPLEMENT_API
 #endif
+
 #import <Foundation/Foundation.h>
 #include <hx/CFFI.h>
 #import "ObjectAL.h"
-#import "OALAudioTrackNotifications.h"
 #include "SoundAppDelegateResponder.h"
+
+DEFINE_KIND(k_SoundSource);
 
 static SoundAppDelegateResponder *responder;
 
-//====================================================================
-//
-// Utils
-//====================================================================
-///--------------------------------------------------------------------
-void soundios_setDeviceConfig()
-{
-    /// Do we want to keep the ipod music running or not?
-    [OALAudioSession sharedInstance].allowIpod = true;
-
-    /// If YES no other application will be able to start playing audio if it wasn't playing already.
-    [OALAudioSession sharedInstance].useHardwareIfAvailable = NO;
-
-    /// If true, mute when backgrounded, screen locked, or the ringer switch is turned off
-    [OALAudioSession sharedInstance].honorSilentSwitch = YES;
-
-    // Deal with interruptions for me!
-    [OALAudioSession sharedInstance].handleInterruptions = YES;
-}
-
-/// convert value String coming from haxe to NSString
 static NSString* valueToNSString(value aHaxeString)
 {
     return [NSString stringWithUTF8String:val_get_string(aHaxeString)];
 }
-//----------------------------------------------------------------------
-void unregisterNotification(OALAudioTrack* track)
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:track];
-}
-void registerMusicNotification(OALAudioTrack* track, value onStopCallback)
-{
-    [[NSNotificationCenter defaultCenter]
-            addObserverForName:OALAudioTrackFinishedPlayingNotification
-                        object:track
-                         queue:nil
-                    usingBlock:^(NSNotification* notification)
-                    {
-                        if (!val_is_null(onStopCallback))
-                        {
-                          val_call0(onStopCallback);
-                        }
-                        unregisterNotification(track);
-                    }];
-}
 
-/** Creating Sound Haxe Pointer*/
-DEFINE_KIND(k_SoundFileHandle);
-static void soundFinalizer(value abstract_object)
-{
-     NSString* s = (NSString *)val_data(abstract_object);
-     [s release];
-}
-static value createHaxePointerForSoundHandle(NSString *soundFilePath)
-{
-    [soundFilePath retain];
-
-    value v;
-    v = alloc_abstract(k_SoundFileHandle, soundFilePath);
-    val_gc(v, (hxFinalizer) &soundFinalizer);
-    return v;
-}
-
-static NSString* getSoundFileHandleFromHaxePointer(value soundPath)
-{
-    return (NSString *)val_data(soundPath);
-}
-DEFINE_KIND(k_SoundChannelHandle);
-static void soundChannelFinalizer(value abstract_object)
-{
-     id<ALSoundSource> s = (id<ALSoundSource>)val_data(abstract_object);
-     [s stop];
-     [s release];
-}
-
-static value createHaxePointerForSoundChannelHandle(id<ALSoundSource> soundChannel)
-{
-    [soundChannel retain];
-
-    value v;
-    v = alloc_abstract(k_SoundChannelHandle, soundChannel);
-    val_gc(v, (hxFinalizer) &soundChannelFinalizer);
-    return v;
-}
-
-
-static id<ALSoundSource> getSoundChannelFromHaxePointer(value soundChannel)
-{
-    return (id<ALSoundSource>)val_data(soundChannel);
-}
-
-/** Creating Music Haxe Pointer*/
-
-DEFINE_KIND(k_MusicChannelHandle);
-static void musicChannelFinalizer(value abstract_object)
-{
-    OALAudioTrack* musicTrack = (OALAudioTrack*)val_data(abstract_object);
-    [musicTrack stop];
-    unregisterNotification(musicTrack);
-    [musicTrack release];
-}
-
-static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
-{
-    value v;
-    v = alloc_abstract(k_MusicChannelHandle, musicChannel);
-    val_gc(v, (hxFinalizer) &musicChannelFinalizer);
-    return v;
-}
-
-static OALAudioTrack* getMusicChannelFromHaxePointer(value musicChannel)
-{
-    return (OALAudioTrack*)val_data(musicChannel);
-}
 //====================================================================
-//
 // Sound Effects
 //====================================================================
 
-static value soundios_initialize(value soundPath, value onComplete)
+static value soundios_fx_initialize(value soundPath)
 {
-    val_check_function(onComplete, 2);
-
-    soundios_setDeviceConfig();
-    NSString *filePath = valueToNSString(soundPath);
-
-    // This loads the sound effects into memory so that
-    // there's no delay when we tell it to play them.
-    ALBuffer* buffer = [[OALSimpleAudio sharedInstance] preloadEffect:filePath];
-
-    value hxSoundHandle = createHaxePointerForSoundHandle(filePath);
-
-    val_call2(onComplete, hxSoundHandle, alloc_float(buffer.duration * 1000));
+    [[OALSimpleAudio sharedInstance] preloadEffect:valueToNSString(soundPath)];
     return alloc_null();
 }
-DEFINE_PRIM(soundios_initialize,2);
+DEFINE_PRIM(soundios_fx_initialize, 1);
 
-///--------------------------------------------------------------------
-static value soundios_play(value filePath, value volume, value loop)
+
+static value soundios_fx_play(value soundPath, value volume, value loop)
 {
-    id<ALSoundSource> soundSrc = [[OALSimpleAudio sharedInstance]
-                                   playEffect:(NSString*)val_data(filePath)
-                                   volume:val_float(volume) pitch:1.0f pan:0.0f loop:val_bool(loop)];
+    id<ALSoundSource> soundsSource = [[OALSimpleAudio sharedInstance]
+            playEffect: valueToNSString(soundPath)
+                volume: val_float(volume)
+                 pitch: 1.0f
+                   pan: 0.0f
+                  loop: val_bool(loop)];
 
-    return createHaxePointerForSoundChannelHandle(soundSrc);
+    return alloc_abstract(k_SoundSource, soundsSource);
 }
-DEFINE_PRIM(soundios_play,3);
+DEFINE_PRIM(soundios_fx_play, 3);
 
-///--------------------------------------------------------------------
-static value soundios_stop(value soundSrc)
+
+static value soundios_fx_stop(value sound)
 {
-    if (soundSrc != alloc_null())
-    {
-        [getSoundChannelFromHaxePointer(soundSrc) stop];
-    }
+    [(id<ALSoundSource>) val_data(sound) stop];
     return alloc_null();
 }
-DEFINE_PRIM(soundios_stop,1);
+DEFINE_PRIM(soundios_fx_stop, 1);
 
-///--------------------------------------------------------------------
-static value soundios_pause(value soundSrc, value pause)
+
+static value soundios_fx_pause(value sound, value paused)
 {
-    if (soundSrc != alloc_null())
-    {
-        getSoundChannelFromHaxePointer(soundSrc).paused = val_bool(pause);
-    }
-
+    ((id<ALSoundSource>) val_data(sound)).paused = val_bool(paused);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_pause,2);
+DEFINE_PRIM(soundios_fx_pause, 2);
 
-///--------------------------------------------------------------------
-static value soundios_setLoop(value filePath, value loop)
+
+static value soundios_fx_setVolume(value sound, value volume)
 {
+    ((id<ALSoundSource>) val_data(sound)).gain = val_float(volume);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_setLoop,2);
+DEFINE_PRIM(soundios_fx_setVolume, 2);
 
-///--------------------------------------------------------------------
-static value soundios_setVolume(value soundSrc, value volume)
+
+static value soundios_fx_setMute(value sound, value mute)
 {
-    getSoundChannelFromHaxePointer(soundSrc).volume = val_float(volume);
+    ((id<ALSoundSource>) val_data(sound)).muted = val_float(mute);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_setVolume,2);
+DEFINE_PRIM(soundios_fx_setMute, 2);
 
-///--------------------------------------------------------------------
-static value soundios_setMute(value soundSrc, value mute)
-{
-    getSoundChannelFromHaxePointer(soundSrc).muted = val_bool(mute);
-    return alloc_null();
-}
-DEFINE_PRIM(soundios_setMute,2);
 
 //====================================================================
-//
 // Background Music
 //====================================================================
 
-static value musicios_initialize(value filePath, value onStopCallback)
+static value soundios_bgmusic_initialize(value filePath)
 {
-    val_check_function(onStopCallback, 0);
-
-    soundios_setDeviceConfig();
-    /// convert to NSString
-    NSString* musicPath = valueToNSString(filePath);
-
-    OALAudioTrack* musicTrack = [[OALAudioTrack alloc] init];
-    [musicTrack retain];
-
-    value haxePointer = createHaxePointerForMusicChannelHandle(musicTrack);
-
-    /// preload the music file
-    [musicTrack preloadFile:musicPath];
-
-    registerMusicNotification(musicTrack, onStopCallback);
-
-    return haxePointer;
+    [[OALSimpleAudio sharedInstance] preloadBg:valueToNSString(filePath)];
+    return alloc_null();
 }
-DEFINE_PRIM(musicios_initialize,2);
+DEFINE_PRIM(soundios_bgmusic_initialize, 1);
 
-///--------------------------------------------------------------------
-static value musicios_play(value musicSrc, value volume, value loop)
+
+static value soundios_bgmusic_play(value filePath, value volume, value loop)
 {
-    OALAudioTrack* musicTrack = getMusicChannelFromHaxePointer(musicSrc);
-
-    musicTrack.volume = val_float(volume);
-    musicTrack.numberOfLoops = val_bool(loop) ? -1 : 0;
-    [musicTrack play];
+    [[OALSimpleAudio sharedInstance] playBg: valueToNSString(filePath)
+                                     volume: val_float(volume)
+                                        pan: 0.0f
+                                       loop: val_bool(loop)];
 
     return alloc_null();
 }
-DEFINE_PRIM (musicios_play, 3);
+DEFINE_PRIM (soundios_bgmusic_play, 3);
 
-///--------------------------------------------------------------------
-static value musicios_stop(value musicSrc)
+
+static value soundios_bgmusic_stop()
 {
-    [getMusicChannelFromHaxePointer(musicSrc) stop];
+    [[OALSimpleAudio sharedInstance] stopBg];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_stop,1);
+DEFINE_PRIM(soundios_bgmusic_stop, 0);
 
-///--------------------------------------------------------------------
-static value musicios_pause(value musicSrc, value pause)
+
+static value soundios_bgmusic_pause(value pause)
 {
-    getMusicChannelFromHaxePointer(musicSrc).paused = val_bool(pause);
-
+    [[OALSimpleAudio sharedInstance] setBgPaused:val_bool(pause)];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_pause,2);
+DEFINE_PRIM(soundios_bgmusic_pause, 1);
 
-///--------------------------------------------------------------------
-static value musicios_setVolume(value musicSrc, value volume)
+
+static value soundios_bgmusic_setVolume(value volume)
 {
-    getMusicChannelFromHaxePointer(musicSrc).volume = val_float(volume);
+    [[OALSimpleAudio sharedInstance] setBgVolume:val_float(volume)];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setVolume,2);
+DEFINE_PRIM(soundios_bgmusic_setVolume, 1);
 
-///--------------------------------------------------------------------
-static value musicios_setMute(value musicSrc, value mute)
+
+static value soundios_bgmusic_setMute(value mute)
 {
-    getMusicChannelFromHaxePointer(musicSrc).muted = val_bool(mute);
+    [[OALSimpleAudio sharedInstance] setBgMuted:val_bool(mute)];
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setMute,2);
+DEFINE_PRIM(soundios_bgmusic_setMute, 1);
 
-///--------------------------------------------------------------------
-static value musicios_setAllowNativePlayer(value allowNativePlayer)
+
+static value soundios_bgmusic_getPosition()
 {
-    [OALAudioSession sharedInstance].allowIpod = val_bool(allowNativePlayer);
+    return alloc_float([OALSimpleAudio sharedInstance].backgroundTrack.currentTime);
+}
+DEFINE_PRIM(soundios_bgmusic_getPosition, 0);
 
+
+static value soundios_bgmusic_getLength()
+{
+    return alloc_float([OALSimpleAudio sharedInstance].backgroundTrack.duration * 1000);
+}
+DEFINE_PRIM(soundios_bgmusic_getLength, 0);
+
+
+//====================================================================
+// Setup
+//====================================================================
+
+static value soundios_setAllowNativePlayer(value allowNativePlayer)
+{
+    [OALSimpleAudio sharedInstance].allowIpod = val_bool(allowNativePlayer);
     return alloc_null();
 }
-DEFINE_PRIM(musicios_setAllowNativePlayer,1);
+DEFINE_PRIM(soundios_setAllowNativePlayer, 1);
 
-///--------------------------------------------------------------------
-static value musicios_isOtherAudioPlaying()
+
+static value soundios_isOtherAudioPlaying()
 {
-    return alloc_bool([AVAudioSession sharedInstance].otherAudioPlaying);
+    return alloc_bool(((AVAudioSession*)[AVAudioSession sharedInstance]).otherAudioPlaying);
 }
-DEFINE_PRIM(musicios_isOtherAudioPlaying,0);
+DEFINE_PRIM(soundios_isOtherAudioPlaying, 0);
 
-///--------------------------------------------------------------------
-static value musicios_getPosition(value musicSrc)
+
+static value soundios_initialize(value onBackground, value onForeground)
 {
-    return alloc_float(getMusicChannelFromHaxePointer(musicSrc).currentTime);
-}
-DEFINE_PRIM(musicios_getPosition,1);
+    [OALSimpleAudio sharedInstance].allowIpod = YES;
+    [OALSimpleAudio sharedInstance].useHardwareIfAvailable = NO;
+    [OALSimpleAudio sharedInstance].honorSilentSwitch = YES;
+    [OALAudioSession sharedInstance].handleInterruptions = YES;
 
-///--------------------------------------------------------------------
-static value musicios_getLength(value musicSrc)
-{
-    return alloc_float(getMusicChannelFromHaxePointer(musicSrc).duration * 1000);/// in millisecond
-}
-DEFINE_PRIM(musicios_getLength,1);
-
-static value musicios_appdelegate_initialize () {
-
-    if(!responder)
+    if (!responder)
     {
         responder = [[SoundAppDelegateResponder alloc] init];
         [responder initialize];
+
+        [responder setWillEnterBackgroundCallback:onBackground];
+        [responder setWillEnterForegroundCallback:onForeground];
     }
+
 	return alloc_null();
 }
-DEFINE_PRIM (musicios_appdelegate_initialize, 0);
-
-static value musicios_appdelegate_set_willEnterForegroundCallback (value inCallback) {
-
-    [responder setWillEnterForegroundCallback:inCallback];
-	return alloc_null();
-
-}
-DEFINE_PRIM (musicios_appdelegate_set_willEnterForegroundCallback, 1);
-
-static value musicios_appdelegate_set_willEnterBackgroundCallback (value inCallback) {
-
-    [responder setWillEnterBackgroundCallback:inCallback];
-	return alloc_null();
-}
-DEFINE_PRIM (musicios_appdelegate_set_willEnterBackgroundCallback, 1);
+DEFINE_PRIM (soundios_initialize, 2);
 
 extern "C" int soundios_register_prims () { return 0; }

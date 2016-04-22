@@ -347,12 +347,13 @@ class SoundScene extends Scene
 
     private function playRandomMusicAction(): Void
     {
+        return;
         var i = Std.random(music.length);
         var o = music[i];
 
         if (o == null) return;
 
-        switch (Std.random(6))
+        switch (Std.random(50))
         {
             case 0:
                 o.play();
