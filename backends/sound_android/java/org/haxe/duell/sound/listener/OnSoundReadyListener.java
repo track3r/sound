@@ -28,5 +28,5 @@ package org.haxe.duell.sound.listener;
 
 public interface OnSoundReadyListener
 {
-    void onSoundReady(int soundId, long soundDurationMillis);
+    void onSoundReady(long soundDurationMillis);
 }

@@ -62,10 +62,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     private Music lastMusic;
 
     private SoundPool sfxPool;
+    private int sessionId;
     private final SparseIntArray soundStreams;
     private final SparseBooleanArray soundStreamsPaused;
     private final SparseArray<Sound> loadedSounds;
-    private final Deque<Integer> soundLoadQueue;
 
     private final WeakReference<AssetManager> assetManager;
 
@@ -87,11 +87,12 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         soundStreams = new SparseIntArray();
         soundStreamsPaused = new SparseBooleanArray();
         loadedSounds = new SparseArray<Sound>();
-        soundLoadQueue = new ArrayDeque<Integer>();
 
         // In order to know if the native player was playing a music before our SoundManger is initialized
         // TODO: try to find a way to know if the native player is playing at any given time
         isNativePlayerPlaying = FocusManager.isMusicPlaying();
+
+        sessionId = -1;
 
         create();
     }
@@ -100,11 +101,10 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
     // Lifecycle and focus handling
     //
 
-    private void create()
+    private synchronized void create()
     {
         soundStreams.clear();
         loadedSounds.clear();
-        soundLoadQueue.clear();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
@@ -115,19 +115,23 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
             loadSfxPoolCompat();
         }
 
+        sessionId++;
+        final int sfxPoolSessionId = sessionId;
+
         sfxPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener()
         {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status)
             {
                 // success
-                if (status == 0)
+                if (status == 0 && sfxPoolSessionId == sessionId)
                 {
-                    int soundKey = soundLoadQueue.removeLast();
-                    Sound sound = loadedSounds.get(soundKey);
-
+                    Sound sound = loadedSounds.get(sampleId);
                     // duration unknown
-                    sound.onSoundReady(sampleId, 0);
+                    if (sound != null)
+                    {
+                        sound.onSoundReady(0);
+                    }
                 }
             }
         });
@@ -168,7 +172,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         sfxPool = new SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 0);
     }
 
-    private void release()
+    private synchronized void release()
     {
         FocusManager.release(this);
 
@@ -258,7 +262,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
         return prepareSound(sound, false);
     }
 
-    private boolean prepareSound(final Sound sound, final boolean shouldPlay)
+    private synchronized boolean prepareSound(final Sound sound, final boolean shouldPlay)
     {
         // recreate sfxPool if needed, we're in a recoverable state
         if (sfxPool == null) {
@@ -269,6 +273,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
 
         try
         {
+            int soundId = -1;
             if (sound.isFromAssets())
             {
                 AssetManager assets = assetManager.get();
@@ -282,19 +287,20 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                 AssetFileDescriptor afd = assets.openFd(fileUrl);
 
                 // load the file always with the same priority
-                sfxPool.load(afd, 1);
+                soundId = sfxPool.load(afd, 1);
 
                 afd.close();
             }
             else
             {
-                sfxPool.load(fileUrl, 1);
+                soundId = sfxPool.load(fileUrl, 1);
             }
 
-            // we need the sound load queue to get the exact unique key for the sound
-            soundLoadQueue.push(sound.getUniqueKey());
-            // the sound needs to be indexed by its unique key in order to be updated when it's loaded
-            loadedSounds.put(sound.getUniqueKey(), sound);
+            sound.setId(soundId);
+            if (soundId != -1)
+            {
+                loadedSounds.put(soundId, sound);
+            }
         }
         catch (IOException e)
         {
@@ -503,7 +509,7 @@ public final class SoundManager implements AudioManager.OnAudioFocusChangeListen
                     }
                     else
                     {
-                        music.onSoundReady(-1, getCurrentMusicDuration());
+                        music.onSoundReady(getCurrentMusicDuration());
                     }
                 }
             });

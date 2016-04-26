@@ -220,9 +220,9 @@ public final class Music implements OnSoundReadyListener, OnSoundCompleteListene
     }
 
     @Override
-    public void onSoundReady(final int soundId, final long soundDurationMillis)
+    public void onSoundReady(final long soundDurationMillis)
     {
-        Log.d(TAG, "Music ready! ID: " + soundId);
+        Log.d(TAG, "Music ready!");
 
         duration = soundDurationMillis;
         state = SoundState.IDLE;
