@@ -100,6 +100,8 @@ class SoundScene extends Scene
     private var sound: Array<Sound>;
     private var music: Music;
 
+    private var inForeground = true;
+
     override public function initScene(): Void
     {
         createTextures();
@@ -112,11 +114,13 @@ class SoundScene extends Scene
 
     private function onApplicationWillEnterBackground(): Void
     {
+        inForeground = false;
         //music.pause();
     }
 
     private function onApplicationWillEnterForeground(): Void
     {
+        inForeground = true;
         //music.play();
     }
 
@@ -318,11 +322,23 @@ class SoundScene extends Scene
     {
         playRandomMusicAction();
         playRandomSoundAction();
-        cpp.vm.Gc.run(true);
+        runGargageCollector();
+    }
+
+    private function runGargageCollector(): Void
+    {
+        if (!inForeground) return;
+
+        if (Std.random(50) == 0)
+        {
+            cpp.vm.Gc.run(true);
+        }
     }
 
     private function playRandomSoundAction(): Void
     {
+        if (!inForeground) return;
+
         var i = Std.random(sound.length);
         var o = sound[i];
 
@@ -346,6 +362,8 @@ class SoundScene extends Scene
 
     private function playRandomMusicAction(): Void
     {
+        if (!inForeground) return;
+
         return;
         switch (Std.random(50))
         {
