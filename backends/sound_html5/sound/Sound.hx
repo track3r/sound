@@ -97,9 +97,15 @@ class Sound
         }
         else
         {
-            howl.play(function(id: String) {
-                currentSoundIds.push(id);
-            });
+            if (volume > 0.0001)
+            {
+                howl.play(function(id: String)
+                {
+                    howl.volume(volume, id);
+                    currentSoundIds.push(id);
+                });
+            }
+
         }
     }
 
@@ -144,28 +150,10 @@ class Sound
     /// here you can do platform specific logic to set the sound volume
     private function set_volume(value: Float): Float
     {
-        if (howl != null)
-        {
-            for (id in currentSoundIds)
-            {
-                if (value > 0.0001 && volume <= 0.0001)
-                {
-                    howl.unmute(id);
-                }
-            }
-
-        }
         volume = value;
         if (howl != null)
         {
-            for (id in currentSoundIds)
-            {
-                howl.volume(value, id);
-                if (volume <= 0.0001)
-                {
-                    howl.mute(id);
-                }
-            }
+            howl.volume(value);
         }
         return value;
     }
