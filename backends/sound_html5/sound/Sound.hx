@@ -97,9 +97,15 @@ class Sound
         }
         else
         {
-            howl.play(function(id: String) {
-                currentSoundIds.push(id);
-            });
+            if (volume > 0.0001)
+            {
+                howl.play(function(id: String)
+                {
+                    howl.volume(volume, id);
+                    currentSoundIds.push(id);
+                });
+            }
+
         }
     }
 
