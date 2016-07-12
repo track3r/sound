@@ -32,6 +32,7 @@ import org.haxe.duell.sound.helper.SoundIdProvider;
 import org.haxe.duell.sound.listener.OnSoundCompleteListener;
 import org.haxe.duell.sound.listener.OnSoundReadyListener;
 import org.haxe.duell.sound.manager.SoundManager;
+import org.haxe.duell.DuellActivity;
 
 public final class Sound implements OnSoundReadyListener, OnSoundCompleteListener
 {
@@ -177,7 +178,13 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         id = soundId;
         state = SoundState.IDLE;
 
-        haxeSound.call0("onSoundLoadCompleted");
+        DuellActivity.getInstance().queueOnHaxeRunloop(new Runnable() {
+            @Override
+            public void run() {
+                haxeSound.call0("onSoundLoadCompleted");
+            }
+        });
+
 
         if (playAfterPreload)
         {
