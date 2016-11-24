@@ -98,7 +98,9 @@ class SoundScene extends Scene
 
     //sound
     private var sound: Array<Sound>;
-    private var music: Array<Music>;
+    private var music: Music;
+
+    private var inForeground = true;
 
     override public function initScene(): Void
     {
@@ -112,12 +114,14 @@ class SoundScene extends Scene
 
     private function onApplicationWillEnterBackground(): Void
     {
-        //music.pause();
+        inForeground = false;
+        music.pause();
     }
 
     private function onApplicationWillEnterForeground(): Void
     {
-        //music.play();
+        inForeground = true;
+        music.play();
     }
 
     private function createTextures(): Void
@@ -199,16 +203,16 @@ class SoundScene extends Scene
 
         playBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music[0].loop = true;
-            music[0].play();
+            music.loop = true;
+            music.play();
         });
         stopBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music[0].stop();
+            music.stop();
         });
         pauseBtn2.settings.onButtonUp.add(function(btn: Entity)
         {
-            music[0].pause();
+            music.pause();
         });
 
 
@@ -229,7 +233,7 @@ class SoundScene extends Scene
             if(newY >= dragMin && newY <= dragMax )
             {
                 volumeBtn.transform.y = newY;
-                music[0].volume = (newY - dragMin) / (dragMax - dragMin);
+                music.volume = (newY - dragMin) / (dragMax - dragMin);
             }
         });
     }
@@ -246,7 +250,7 @@ class SoundScene extends Scene
 
         nativePlayerCheckBox.size.width = 34;
         nativePlayerCheckBox.size.height = 34;
-        nativePlayerCheckBox.transform.x = 350;
+        nativePlayerCheckBox.transform.x = 50;
         nativePlayerCheckBox.transform.y = 180;
         nativePlayerCheckBox.transform.anchorPoint = 1.0;
         nativePlayerCheckBox.checkStatus.selected = Music.allowNativePlayer;
@@ -264,9 +268,9 @@ class SoundScene extends Scene
         checkBoxLabel.size.width = 64;
         checkBoxLabel.size.height = 64;
         checkBoxLabel.transform.scale = 0.5;
-        checkBoxLabel.transform.x = 170;
+        checkBoxLabel.transform.x = 180;
         checkBoxLabel.transform.y = 160;
-        checkBoxLabel.settings.text = "Native player:";
+        checkBoxLabel.settings.text = "Native player";
 
         root.addChild(checkBoxLabel);
     }
@@ -294,12 +298,11 @@ class SoundScene extends Scene
 
     private function loadSound(): Void
     {
-        music = [];
         for (i in 0...1)
         {
             Music.load('${FileSystem.instance().getUrlToStaticData()}/music_0.mp3', function(m: Music)
             {
-                music.push(m);
+                music = m;
             });
         }
 
@@ -319,17 +322,29 @@ class SoundScene extends Scene
     {
         playRandomMusicAction();
         playRandomSoundAction();
-        cpp.vm.Gc.run(true);
+        runGargageCollector();
+    }
+
+    private function runGargageCollector(): Void
+    {
+        if (!inForeground) return;
+
+        if (Std.random(50) == 0)
+        {
+            cpp.vm.Gc.run(true);
+        }
     }
 
     private function playRandomSoundAction(): Void
     {
+        if (!inForeground) return;
+
         var i = Std.random(sound.length);
         var o = sound[i];
 
         if (o == null) return;
 
-        switch (Std.random(5))
+        switch (Std.random(50))
         {
             case 0:
                 o.play();
@@ -347,25 +362,24 @@ class SoundScene extends Scene
 
     private function playRandomMusicAction(): Void
     {
-        var i = Std.random(music.length);
-        var o = music[i];
+        if (!inForeground) return;
 
-        if (o == null) return;
-
-        switch (Std.random(6))
+        return;
+        switch (Std.random(50))
         {
             case 0:
-                o.play();
+                music.loop = true;
+                music.play();
             case 1:
-                o.pause();
+                music.pause();
             case 2:
-                o.stop();
+                music.stop();
             case 3:
-                o.volume = Math.random();
+                music.volume = Math.random();
             case 4:
-                o.loop = Std.random(2) == 0;
+//                music.loop = Std.random(2) == 0;
             case 5:
-                Music.allowNativePlayer = Std.random(2) == 0;
+//                Music.allowNativePlayer = Std.random(2) == 0;
             default:
         }
     }

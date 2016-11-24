@@ -32,6 +32,7 @@
 #import "OALAudioTracks.h"
 #import "OALTools.h"
 #import "OALUtilityActions.h"
+#import "OALAudioSession.h"
 #import "ObjectALMacros.h"
 #import "ARCSafe_MemMgmt.h"
 
@@ -519,38 +520,42 @@
         {
             if(preloaded)
             {
-                NSError* error;
-                as_release(player);
-                player = [[AVAudioPlayer alloc] initWithContentsOfURL:currentlyLoadedUrl error:&error];
-                if(nil == player)
+                // Resets the player only if hardware playback is enabled
+                if ([OALAudioSession sharedInstance].useHardwareIfAvailable)
                 {
-                    OAL_LOG_ERROR(@"%@: Could not reload URL %@: %@",
-                                  self, currentlyLoadedUrl, [error localizedDescription]);
+                    NSError* error;
                     as_release(player);
-                    player = nil;
-                    preloaded = NO;
-                    playing = NO;
-                    paused = NO;
-                    return;
-                }
+                    player = [[AVAudioPlayer alloc] initWithContentsOfURL:currentlyLoadedUrl error:&error];
+                    if(nil == player)
+                    {
+                        OAL_LOG_ERROR(@"%@: Could not reload URL %@: %@",
+                                      self, currentlyLoadedUrl, [error localizedDescription]);
+                        as_release(player);
+                        player = nil;
+                        preloaded = NO;
+                        playing = NO;
+                        paused = NO;
+                        return;
+                    }
 
-                player.volume = muted ? 0 : gain;
-                player.numberOfLoops = numberOfLoops;
-                player.meteringEnabled = meteringEnabled;
-                player.delegate = self;
-                player.pan = pan;
+                    player.volume = muted ? 0 : gain;
+                    player.numberOfLoops = numberOfLoops;
+                    player.meteringEnabled = meteringEnabled;
+                    player.delegate = self;
+                    player.pan = pan;
 
-                player.currentTime = currentTime;
+                    player.currentTime = currentTime;
 
-                if(![player prepareToPlay])
-                {
-                    OAL_LOG_ERROR(@"%@: Failed to prepareToPlay on resume: %@", self, currentlyLoadedUrl);
-                    as_release(player);
-                    player = nil;
-                    preloaded = NO;
-                    playing = NO;
-                    paused = NO;
-                    return;
+                    if(![player prepareToPlay])
+                    {
+                        OAL_LOG_ERROR(@"%@: Failed to prepareToPlay on resume: %@", self, currentlyLoadedUrl);
+                        as_release(player);
+                        player = nil;
+                        preloaded = NO;
+                        playing = NO;
+                        paused = NO;
+                        return;
+                    }
                 }
 
                 if(playing)

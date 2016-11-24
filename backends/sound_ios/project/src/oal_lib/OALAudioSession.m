@@ -149,7 +149,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(OALAudioSession);
 		handleInterruptions = YES;
 		allowIpod = YES;
 		ipodDucking = NO;
-		useHardwareIfAvailable = YES;
+		useHardwareIfAvailable = NO;
 		honorSilentSwitch = YES;
 		[self updateFromFlags];
 

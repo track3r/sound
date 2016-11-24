@@ -28,7 +28,6 @@ package org.haxe.duell.sound;
 
 import android.util.Log;
 import org.haxe.duell.hxjni.HaxeObject;
-import org.haxe.duell.sound.helper.SoundIdProvider;
 import org.haxe.duell.sound.listener.OnSoundCompleteListener;
 import org.haxe.duell.sound.listener.OnSoundReadyListener;
 import org.haxe.duell.sound.manager.SoundManager;
@@ -40,7 +39,6 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     private final HaxeObject haxeSound;
     private final String fileUrl;
     private final boolean fromAssets;
-    private final int uniqueKey;
 
     private int id;
     private float volume;
@@ -60,8 +58,7 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         this.fileUrl = fileUrl;
         this.fromAssets = fromAssets;
 
-        // the unique id has to be different for every sound, so a hash of file URL is not sufficient
-        uniqueKey = SoundIdProvider.getId();
+        id = -1;
 
         volume = 1.0f;
         loop = 0;
@@ -170,11 +167,10 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
     }
 
     @Override
-    public void onSoundReady(final int soundId, final long soundDurationMillis)
+    public void onSoundReady(final long soundDurationMillis)
     {
-        Log.d(TAG, "Sound ready! ID: " + soundId);
+        Log.d(TAG, "Sound ready! ID: " + id);
 
-        id = soundId;
         state = SoundState.IDLE;
 
         haxeSound.call0("onSoundLoadCompleted");
@@ -216,14 +212,14 @@ public final class Sound implements OnSoundReadyListener, OnSoundCompleteListene
         return volume;
     }
 
+    public void setId(final int id)
+    {
+        this.id = id;
+    }
+
     public int getId()
     {
         return id;
-    }
-
-    public int getUniqueKey()
-    {
-        return uniqueKey;
     }
 
     public boolean isFromAssets()
