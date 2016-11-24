@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <library xmlns="duell">
+
     <haxelib name="msignal" version="1.2.4" />
     <haxelib name="format" version="3.1.2" />
 
-    <duelllib name="filesystem" version="7.0.0+" />
+    <duelllib name="corekit" version="1.0.0+" />
 
     <include path="backends/sound_html5/duell_library.xml" if="html5" />
     <include path="backends/sound_android/duell_library.xml" if="android" />
