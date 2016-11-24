@@ -47,14 +47,14 @@ class IOSSound
     private static var nativeGetIsOtherAudioPlaying = Lib.load("soundios",  "soundios_isOtherAudioPlaying", 0);
 
     // BG Music
-    private static var nativeBGMusicPreload = Lib.load("soundios",          "soundios_bgmusic_initialize",1);
+    private static var nativeBGMusicPreload = Lib.load("soundios",          "soundios_bgmusic_initialize", 2);
     private static var nativeBGMusicPlay = Lib.load("soundios",             "soundios_bgmusic_play", 3);
-    private static var nativeBGMusicStop = Lib.load("soundios",             "soundios_bgmusic_stop", 0);
-    private static var nativeBGMusicSetPause = Lib.load("soundios",         "soundios_bgmusic_pause", 1);
-    private static var nativeBGMusicSetVolume = Lib.load("soundios",        "soundios_bgmusic_setVolume", 1);
-    private static var nativeBGMusicSetMute = Lib.load("soundios",          "soundios_bgmusic_setMute", 1);
-    private static var nativeBGMusicGetLength = Lib.load("soundios",        "soundios_bgmusic_getLength", 0);
-    private static var nativeBGMusicGetPosition = Lib.load("soundios",      "soundios_bgmusic_getPosition", 0);
+    private static var nativeBGMusicStop = Lib.load("soundios",             "soundios_bgmusic_stop", 1);
+    private static var nativeBGMusicSetPause = Lib.load("soundios",         "soundios_bgmusic_pause", 2);
+    private static var nativeBGMusicSetVolume = Lib.load("soundios",        "soundios_bgmusic_setVolume", 2);
+    private static var nativeBGMusicSetMute = Lib.load("soundios",          "soundios_bgmusic_setMute", 2);
+    private static var nativeBGMusicGetLength = Lib.load("soundios",        "soundios_bgmusic_getLength", 1);
+    private static var nativeBGMusicGetPosition = Lib.load("soundios",      "soundios_bgmusic_getPosition", 1);
 
     // Sound FX
     private static var nativeSFXPreload = Lib.load("soundios",              "soundios_fx_initialize", 1);
@@ -66,6 +66,7 @@ class IOSSound
 
     public var onBackgroundCallback: Void -> Void;
     public var onForegroundCallback: Void -> Void;
+    public var onStopCallback: Void -> Void;
 
     private function new()
     {
@@ -88,6 +89,14 @@ class IOSSound
         }
     }
 
+    private function onNativeStop(): Void
+    {
+        if (onStopCallback != null)
+        {
+            onStopCallback();
+        }
+    }
+
     public function setAllowNativePlayer(value: Bool): Void
     {
         nativeSetAllowNativePlayer(value);
@@ -98,44 +107,44 @@ class IOSSound
         return nativeGetIsOtherAudioPlaying();
     }
 
-    public function preloadMusic(fileURL: String): Void
+    public function preloadMusic(fileURL: String): Dynamic
     {
-        nativeBGMusicPreload(fileURL);
+        return nativeBGMusicPreload(fileURL, onNativeStop);
     }
 
-    public function playMusic(fileURL: String, volume : Float, loop: Bool): Void
+    public function playMusic(nativeHandle: Dynamic, volume : Float, loop: Bool): Void
     {
-        nativeBGMusicPlay(fileURL, volume, loop);
+        nativeBGMusicPlay(nativeHandle, volume, loop);
     }
 
-    public function stopMusic(): Void
+    public function stopMusic(nativeHandle: Dynamic): Void
     {
-        nativeBGMusicStop();
+        nativeBGMusicStop(nativeHandle);
     }
 
-    public function setMusicPause(pause: Bool): Void
+    public function setMusicPause(nativeHandle: Dynamic, pause: Bool): Void
     {
-        nativeBGMusicSetPause(pause);
+        nativeBGMusicSetPause(nativeHandle, pause);
     }
 
-    public function setMusicVolume(volume: Float): Void
+    public function setMusicVolume(nativeHandle: Dynamic, volume: Float): Void
     {
-        nativeBGMusicSetVolume(volume);
+        nativeBGMusicSetVolume(nativeHandle, volume);
     }
 
-    public function setMusicMute(mute: Bool): Void
+    public function setMusicMute(nativeHandle: Dynamic, mute: Bool): Void
     {
-        nativeBGMusicSetMute(mute);
+        nativeBGMusicSetMute(nativeHandle, mute);
     }
 
-    public function getMusicLength(): Float
+    public function getMusicLength(nativeHandle: Dynamic): Float
     {
-        return nativeBGMusicGetLength();
+        return nativeBGMusicGetLength(nativeHandle);
     }
 
-    public function getMusicPosition(): Float
+    public function getMusicPosition(nativeHandle: Dynamic): Float
     {
-        return nativeBGMusicGetPosition();
+        return nativeBGMusicGetPosition(nativeHandle);
     }
 
     public function preloadSFX(fileURL): Void

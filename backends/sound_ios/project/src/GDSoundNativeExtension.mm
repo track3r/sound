@@ -42,6 +42,51 @@ static NSString* valueToNSString(value aHaxeString)
     return [NSString stringWithUTF8String:val_get_string(aHaxeString)];
 }
 
+void unregisterMusicNotification(OALAudioTrack* track)
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:track];
+}
+
+void registerMusicNotification(OALAudioTrack* track, value onStopCallback)
+{
+    [[NSNotificationCenter defaultCenter]
+            addObserverForName:OALAudioTrackFinishedPlayingNotification
+                        object:track
+                         queue:nil
+                    usingBlock:^(NSNotification* notification)
+                    {
+                        if (!val_is_null(onStopCallback))
+                        {
+                          val_call0(onStopCallback);
+                        }
+                        unregisterMusicNotification(track);
+                    }];
+}
+
+/** Creating Music Haxe Pointer*/
+
+DEFINE_KIND(k_MusicChannelHandle);
+static void musicChannelFinalizer(value abstract_object)
+{
+    OALAudioTrack* musicTrack = (OALAudioTrack*)val_data(abstract_object);
+    [musicTrack stop];
+    unregisterMusicNotification(musicTrack);
+    [musicTrack release];
+}
+
+static value createHaxePointerForMusicChannelHandle(OALAudioTrack* musicChannel)
+{
+    value v;
+    v = alloc_abstract(k_MusicChannelHandle, musicChannel);
+    val_gc(v, (hxFinalizer) &musicChannelFinalizer);
+    return v;
+}
+
+static OALAudioTrack* getMusicChannelFromHaxePointer(value musicChannel)
+{
+    return (OALAudioTrack*)val_data(musicChannel);
+}
+
 //====================================================================
 // Sound Effects
 //====================================================================
@@ -104,70 +149,82 @@ DEFINE_PRIM(soundios_fx_setMute, 2);
 // Background Music
 //====================================================================
 
-static value soundios_bgmusic_initialize(value filePath)
+static value soundios_bgmusic_initialize(value filePath, value onStopCallback)
 {
-    [[OALSimpleAudio sharedInstance] preloadBg:valueToNSString(filePath)];
-    return alloc_null();
+    val_check_function(onStopCallback, 0);
+
+    OALAudioTrack* musicTrack = [[OALAudioTrack alloc] init];
+    [musicTrack retain];
+
+    value haxePointer = createHaxePointerForMusicChannelHandle(musicTrack);
+
+    /// preload the music file
+    [musicTrack preloadFile:valueToNSString(filePath)];
+
+    registerMusicNotification(musicTrack, onStopCallback);
+
+    return haxePointer;
 }
-DEFINE_PRIM(soundios_bgmusic_initialize, 1);
+DEFINE_PRIM(soundios_bgmusic_initialize, 2);
 
 
-static value soundios_bgmusic_play(value filePath, value volume, value loop)
+static value soundios_bgmusic_play(value musicChannel, value volume, value loop)
 {
-    [[OALSimpleAudio sharedInstance] playBg: valueToNSString(filePath)
-                                     volume: val_float(volume)
-                                        pan: 0.0f
-                                       loop: val_bool(loop)];
+    OALAudioTrack* musicTrack = getMusicChannelFromHaxePointer(musicChannel);
+
+    musicTrack.volume = val_float(volume);
+    musicTrack.numberOfLoops = val_bool(loop) ? -1 : 0;
+    [musicTrack play];
 
     return alloc_null();
 }
 DEFINE_PRIM (soundios_bgmusic_play, 3);
 
 
-static value soundios_bgmusic_stop()
+static value soundios_bgmusic_stop(value musicChannel)
 {
-    [[OALSimpleAudio sharedInstance] stopBg];
+    [getMusicChannelFromHaxePointer(musicChannel) stop];
     return alloc_null();
 }
-DEFINE_PRIM(soundios_bgmusic_stop, 0);
+DEFINE_PRIM(soundios_bgmusic_stop, 1);
 
 
-static value soundios_bgmusic_pause(value pause)
+static value soundios_bgmusic_pause(value musicChannel, value pause)
 {
-    [[OALSimpleAudio sharedInstance] setBgPaused:val_bool(pause)];
+    getMusicChannelFromHaxePointer(musicChannel).paused = val_bool(pause);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_bgmusic_pause, 1);
+DEFINE_PRIM(soundios_bgmusic_pause, 2);
 
 
-static value soundios_bgmusic_setVolume(value volume)
+static value soundios_bgmusic_setVolume(value musicChannel, value volume)
 {
-    [[OALSimpleAudio sharedInstance] setBgVolume:val_float(volume)];
+    getMusicChannelFromHaxePointer(musicChannel).volume = val_float(volume);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_bgmusic_setVolume, 1);
+DEFINE_PRIM(soundios_bgmusic_setVolume, 2);
 
 
-static value soundios_bgmusic_setMute(value mute)
+static value soundios_bgmusic_setMute(value musicChannel, value mute)
 {
-    [[OALSimpleAudio sharedInstance] setBgMuted:val_bool(mute)];
+    getMusicChannelFromHaxePointer(musicChannel).muted = val_bool(mute);
     return alloc_null();
 }
-DEFINE_PRIM(soundios_bgmusic_setMute, 1);
+DEFINE_PRIM(soundios_bgmusic_setMute, 2);
 
 
-static value soundios_bgmusic_getPosition()
+static value soundios_bgmusic_getPosition(value musicChannel)
 {
-    return alloc_float([OALSimpleAudio sharedInstance].backgroundTrack.currentTime);
+    return alloc_float(getMusicChannelFromHaxePointer(musicChannel).currentTime);
 }
-DEFINE_PRIM(soundios_bgmusic_getPosition, 0);
+DEFINE_PRIM(soundios_bgmusic_getPosition, 1);
 
 
-static value soundios_bgmusic_getLength()
+static value soundios_bgmusic_getLength(value musicChannel)
 {
-    return alloc_float([OALSimpleAudio sharedInstance].backgroundTrack.duration * 1000);
+    return alloc_float(getMusicChannelFromHaxePointer(musicChannel).duration * 1000);
 }
-DEFINE_PRIM(soundios_bgmusic_getLength, 0);
+DEFINE_PRIM(soundios_bgmusic_getLength, 1);
 
 
 //====================================================================

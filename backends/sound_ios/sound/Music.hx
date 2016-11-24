@@ -52,6 +52,8 @@ class Music
     private var state: MusicState;
     private var onBackgroundVolume: Float = 0.0;
 
+    private var nativeHandle: Dynamic;
+
     private function new()
     {
         loop = false;
@@ -75,10 +77,12 @@ class Music
     private function loadSoundFile(): Void
     {
         IOSSound.getInstance().onBackgroundCallback = onBackground;
+        IOSSound.getInstance().onStopCallback = onMusicFinishPlayingCallback;
 
-        IOSSound.getInstance().preloadMusic(fileUrl);
 
-        if (loadCallback != null)
+        nativeHandle = IOSSound.getInstance().preloadMusic(fileUrl);
+
+        if (nativeHandle != null && loadCallback != null)
         {
             loadCallback(this);
         }
@@ -112,11 +116,11 @@ class Music
 
         if (state == MusicState.PAUSED)
         {
-            IOSSound.getInstance().setMusicPause(false);
+            IOSSound.getInstance().setMusicPause(nativeHandle, false);
         }
         else
         {
-            IOSSound.getInstance().playMusic(fileUrl, volume, loop);
+            IOSSound.getInstance().playMusic(nativeHandle, volume, loop);
         }
         state = MusicState.PLAYING;
     }
@@ -125,7 +129,7 @@ class Music
     {
         if (state != MusicState.STOPPED)
         {
-            IOSSound.getInstance().stopMusic();
+            IOSSound.getInstance().stopMusic(nativeHandle);
             state = MusicState.STOPPED;
             onPlaybackComplete.dispatch(this);
         }
@@ -135,14 +139,14 @@ class Music
     {
         if (state == MusicState.PLAYING)
         {
-            IOSSound.getInstance().setMusicPause(true);
+            IOSSound.getInstance().setMusicPause(nativeHandle, true);
             state = MusicState.PAUSED;
         }
     }
 
     public function mute(): Void
     {
-        IOSSound.getInstance().setMusicMute(true);
+        IOSSound.getInstance().setMusicMute(nativeHandle, true);
     }
 
     public static function isNativePlayerPlaying(): Bool
@@ -155,7 +159,7 @@ class Music
         volume = value;
         onBackgroundVolume = 0.0;
 
-        IOSSound.getInstance().setMusicVolume(volume);
+        IOSSound.getInstance().setMusicVolume(nativeHandle, volume);
         return volume;
     }
 
@@ -172,11 +176,11 @@ class Music
 
     private function get_length(): Float
     {
-        return IOSSound.getInstance().getMusicLength();
+        return IOSSound.getInstance().getMusicLength(nativeHandle);
     }
 
     private function get_position(): Float
     {
-        return IOSSound.getInstance().getMusicPosition();
+        return IOSSound.getInstance().getMusicPosition(nativeHandle);
     }
 }

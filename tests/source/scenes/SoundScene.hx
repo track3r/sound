@@ -115,13 +115,13 @@ class SoundScene extends Scene
     private function onApplicationWillEnterBackground(): Void
     {
         inForeground = false;
-        //music.pause();
+        music.pause();
     }
 
     private function onApplicationWillEnterForeground(): Void
     {
         inForeground = true;
-        //music.play();
+        music.play();
     }
 
     private function createTextures(): Void
@@ -250,7 +250,7 @@ class SoundScene extends Scene
 
         nativePlayerCheckBox.size.width = 34;
         nativePlayerCheckBox.size.height = 34;
-        nativePlayerCheckBox.transform.x = 350;
+        nativePlayerCheckBox.transform.x = 50;
         nativePlayerCheckBox.transform.y = 180;
         nativePlayerCheckBox.transform.anchorPoint = 1.0;
         nativePlayerCheckBox.checkStatus.selected = Music.allowNativePlayer;
@@ -268,9 +268,9 @@ class SoundScene extends Scene
         checkBoxLabel.size.width = 64;
         checkBoxLabel.size.height = 64;
         checkBoxLabel.transform.scale = 0.5;
-        checkBoxLabel.transform.x = 170;
+        checkBoxLabel.transform.x = 180;
         checkBoxLabel.transform.y = 160;
-        checkBoxLabel.settings.text = "Native player:";
+        checkBoxLabel.settings.text = "Native player";
 
         root.addChild(checkBoxLabel);
     }
